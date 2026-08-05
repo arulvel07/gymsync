@@ -8,30 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initAuthPage() {
-    const supabase = window.SUPABASE_CLIENT;
-
-    // 1. If we are inside the popup window and signed in, close popup immediately!
-    if (window.opener) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            window.close();
-            return;
-        }
-    }
-
-    // 2. Listen for auth state change (when popup logs in, main window detects it)
-    if (supabase && supabase.auth) {
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-                if (window.opener) {
-                    window.close();
-                } else {
-                    window.location.href = 'dashboard.html';
-                }
-            }
-        });
-    }
-
     // Attach Google Auth button listener
     const googleBtn = document.querySelector('.google-auth-btn');
     if (googleBtn) {
@@ -41,7 +17,7 @@ async function initAuthPage() {
         console.error("Could not find the Google Auth button in the HTML.");
     }
 
-    // Check if main window is already logged in
+    // Check if user is already logged in
     try {
         const alreadyAuth = await redirectIfAuth();
         if (alreadyAuth) return;
@@ -52,7 +28,7 @@ async function initAuthPage() {
 
 async function handleGoogleAuth(e) {
     e.preventDefault();
-    console.log("Google button clicked! Launching OAuth popup window...");
+    console.log("Google button clicked! Initiating OAuth redirect...");
 
     try {
         const supabase = window.SUPABASE_CLIENT;
@@ -60,7 +36,6 @@ async function handleGoogleAuth(e) {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                skipBrowserRedirect: true,
                 redirectTo: window.location.origin + '/dashboard.html',
                 queryParams: {
                     hd: 'iiitdm.ac.in', // Force Google to only accept college emails
@@ -73,37 +48,6 @@ async function handleGoogleAuth(e) {
             console.error("Supabase OAuth Error:", error);
             alert("Error: " + error.message);
             throw error;
-        }
-
-        if (data?.url) {
-            // Calculate screen center for sleek 500x620 popup window
-            const width = 500;
-            const height = 620;
-            const left = Math.max(0, (window.screen.width / 2) - (width / 2));
-            const top = Math.max(0, (window.screen.height / 2) - (height / 2));
-
-            const popup = window.open(
-                data.url,
-                'GoogleAuthPopup',
-                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`
-            );
-
-            // Poll for session completion or popup closure in the main window
-            const checkTimer = setInterval(async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    clearInterval(checkTimer);
-                    if (popup && !popup.closed) {
-                        try { popup.close(); } catch (e) {}
-                    }
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-
-                if (popup && popup.closed) {
-                    clearInterval(checkTimer);
-                }
-            }, 500);
         }
     } catch (error) {
         console.error("Caught error in handleGoogleAuth:", error);

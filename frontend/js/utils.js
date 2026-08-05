@@ -3,28 +3,6 @@
  * API helpers, date formatting, toast notifications, and loading states
  */
 
-// ── OAuth Popup Auto-Close ─────────────────────────────────
-// Ensures Supabase parses the token into localStorage before closing the popup window
-document.addEventListener('DOMContentLoaded', async () => {
-    if (window.opener || window.name === 'GoogleAuthPopup') {
-        const supabase = window.SUPABASE_CLIENT;
-        if (supabase) {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    setTimeout(() => { try { window.close(); } catch (e) {} }, 300);
-                } else {
-                    supabase.auth.onAuthStateChange((event, session) => {
-                        if (session) {
-                            setTimeout(() => { try { window.close(); } catch (e) {} }, 300);
-                        }
-                    });
-                }
-            } catch (e) {}
-        }
-    }
-});
-
 // ── API Helper ─────────────────────────────────────────────
 
 /**
