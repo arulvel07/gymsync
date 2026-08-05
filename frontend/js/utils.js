@@ -26,17 +26,25 @@ async function apiRequest(endpoint, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    try {
+        const response = await fetch(`${baseUrl}${endpoint}`, {
+            ...options,
+            headers,
+        });
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-        throw new Error(error.detail || `HTTP ${response.status}`);
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+            throw new Error(error.detail || `HTTP ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (err) {
+        console.error(`apiRequest failed for ${baseUrl}${endpoint}:`, err);
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+            throw new Error(`Connection failed to ${baseUrl}. Check network or adblocker.`);
+        }
+        throw err;
     }
-
-    return response.json();
 }
 
 /**
@@ -44,12 +52,20 @@ async function apiRequest(endpoint, options = {}) {
  */
 async function publicApiRequest(endpoint) {
     const baseUrl = window.API_BASE_URL;
-    const response = await fetch(`${baseUrl}${endpoint}`);
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-        throw new Error(error.detail || `HTTP ${response.status}`);
+    try {
+        const response = await fetch(`${baseUrl}${endpoint}`);
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+            throw new Error(error.detail || `HTTP ${response.status}`);
+        }
+        return await response.json();
+    } catch (err) {
+        console.error(`publicApiRequest failed for ${baseUrl}${endpoint}:`, err);
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+            throw new Error(`Connection failed to ${baseUrl}. Check network or adblocker.`);
+        }
+        throw err;
     }
-    return response.json();
 }
 
 
