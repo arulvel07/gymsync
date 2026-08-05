@@ -450,6 +450,21 @@ body {
     border-bottom: 1px solid var(--border-subtle);
 }
 
+.user-profile-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logout-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.logout-btn svg {
+    flex-shrink: 0;
+}
+
 .nav-brand {
     display: flex;
     align-items: center;
@@ -740,6 +755,36 @@ body {
 
     .nav-brand {
         font-size: 0.85rem;
+    }
+
+    .user-profile-bar {
+        gap: 6px;
+    }
+
+    .user-info-text {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #user-name {
+        font-size: 0.78rem !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #user-role {
+        display: none;
+    }
+
+    .logout-text {
+        display: none;
+    }
+
+    .logout-btn {
+        padding: 6px 8px;
     }
 
     main {
