@@ -51,7 +51,12 @@ async function loadProfile() {
         const profile = await apiRequest('/api/profile');
         const nameEl = document.getElementById('user-name');
         const roleEl = document.getElementById('user-role');
-        if (nameEl) nameEl.textContent = profile.full_name || 'Student';
+        const welcomeEl = document.getElementById('welcome-heading');
+
+        const fullName = profile.full_name || 'Student';
+        if (nameEl) nameEl.textContent = `Hi, ${fullName}`;
+        if (welcomeEl) welcomeEl.textContent = `Hi, ${fullName} 👋`;
+
         if (roleEl) {
             roleEl.textContent = profile.role;
             roleEl.className = `badge ${profile.role === 'admin' ? 'badge-blue' : 'badge-green'}`;

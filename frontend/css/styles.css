@@ -459,6 +459,17 @@ body {
 .logout-btn {
     padding: 6px 12px;
     font-size: 0.8rem;
+    background: rgba(244, 63, 94, 0.12);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    transition: all 0.15s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(244, 63, 94, 0.22);
+    color: #fda4af;
+    border-color: rgba(244, 63, 94, 0.5);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
 }
 
 .logout-btn svg {
