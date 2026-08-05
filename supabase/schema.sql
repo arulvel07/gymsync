@@ -62,72 +62,77 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gym_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gym_config ENABLE ROW LEVEL SECURITY;
 
+-- Create a secure definer function to check admin status without triggering RLS loops
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$;
+
 -- PROFILES policies
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile"
     ON public.profiles FOR SELECT
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile"
     ON public.profiles FOR INSERT
     WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Admins can view all profiles"
     ON public.profiles FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
+    USING (public.is_admin());
 
 -- GYM SESSIONS policies
+DROP POLICY IF EXISTS "Users can view their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can view their own sessions"
     ON public.gym_sessions FOR SELECT
     USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can insert their own sessions"
     ON public.gym_sessions FOR INSERT
     WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can update their own sessions"
     ON public.gym_sessions FOR UPDATE
     USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Admins can view all sessions" ON public.gym_sessions;
 CREATE POLICY "Admins can view all sessions"
     ON public.gym_sessions FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
+    USING (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can update any session" ON public.gym_sessions;
 CREATE POLICY "Admins can update any session"
     ON public.gym_sessions FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
+    USING (public.is_admin());
 
 -- GYM CONFIG policies
+DROP POLICY IF EXISTS "Anyone can view gym config" ON public.gym_config;
 CREATE POLICY "Anyone can view gym config"
     ON public.gym_config FOR SELECT
     USING (true);
 
+DROP POLICY IF EXISTS "Admins can update gym config" ON public.gym_config;
 CREATE POLICY "Admins can update gym config"
     ON public.gym_config FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
+    USING (public.is_admin());
 
 -- ============================================
 -- DATABASE FUNCTIONS
