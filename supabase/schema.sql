@@ -185,8 +185,8 @@ BEGIN
     INSERT INTO public.profiles (id, full_name, roll_number, role)
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'roll_number', ''),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+        UPPER(split_part(NEW.email, '@', 1)), -- Extracts 'CS22B1001' from 'CS22B1001@iiitdm.ac.in'
         'student'
     );
     RETURN NEW;

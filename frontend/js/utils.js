@@ -299,3 +299,14 @@ function exportToCSV(data, filename = 'export.csv') {
     link.click();
     URL.revokeObjectURL(link.href);
 }
+
+// ── Global Logout Handler ──────────────────────────────────
+async function handleLogout() {
+    const supabase = window.SUPABASE_CLIENT;
+    await supabase.auth.signOut();
+    showToast('Logged out successfully', 'info');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 500);
+}
+window.handleLogout = handleLogout;
