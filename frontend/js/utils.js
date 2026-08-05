@@ -262,28 +262,86 @@ function getWorkoutIcon(type) {
 /**
  * Redirect to login if not authenticated.
  * Call this on protected pages.
+ * Handles OAuth callback by waiting for Supabase to process the URL hash tokens.
  */
 async function requireAuth() {
     const supabase = window.SUPABASE_CLIENT;
+
+    // First, try the fast path — session already in storage
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html';
-        return null;
+    if (session) return session;
+
+    // If URL has a hash fragment (OAuth callback), wait for Supabase to process it
+    if (window.location.hash && window.location.hash.length > 1) {
+        console.log('OAuth callback detected, waiting for session from auth state change...');
+        const authSession = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+                resolve(null);
+            }, 5000); // 5-second timeout fallback
+
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                    if (session) {
+                        clearTimeout(timeout);
+                        subscription.unsubscribe();
+                        resolve(session);
+                    }
+                }
+            });
+        });
+
+        if (authSession) {
+            // Clean the hash from the URL
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            return authSession;
+        }
     }
-    return session;
+
+    // No session found — redirect to login
+    window.location.href = 'login.html';
+    return null;
 }
 
 /**
  * Redirect to dashboard if already authenticated.
  * Call this on login/register pages.
+ * Also handles OAuth callback hash fragments.
  */
 async function redirectIfAuth() {
     const supabase = window.SUPABASE_CLIENT;
+
+    // Fast path — session already in storage
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
         window.location.href = 'dashboard.html';
         return true;
     }
+
+    // If URL has a hash fragment (OAuth callback landed here), wait for Supabase
+    if (window.location.hash && window.location.hash.length > 1) {
+        console.log('OAuth callback detected on login page, waiting for session...');
+        const authSession = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+                resolve(null);
+            }, 5000);
+
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                    if (session) {
+                        clearTimeout(timeout);
+                        subscription.unsubscribe();
+                        resolve(session);
+                    }
+                }
+            });
+        });
+
+        if (authSession) {
+            window.location.href = 'dashboard.html';
+            return true;
+        }
+    }
+
     return false;
 }
 
