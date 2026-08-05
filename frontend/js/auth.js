@@ -14,27 +14,38 @@ async function initAuthPage() {
     // Google Auth button
     const googleBtn = document.querySelector('.google-auth-btn');
     if (googleBtn) {
+        console.log("Google button found and listener attached!");
         googleBtn.addEventListener('click', handleGoogleAuth);
+    } else {
+        console.error("Google button NOT found!");
     }
 }
 
 async function handleGoogleAuth(e) {
     e.preventDefault();
+    console.log("Google button clicked! Initiating OAuth...");
+
     try {
         const supabase = window.SUPABASE_CLIENT;
-        const { error } = await supabase.auth.signInWithOAuth({
+        console.log("Supabase client:", supabase);
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/dashboard.html',
-                queryParams: {
-                    access_type: 'offline',
-                    prompt: 'consent',
-                }
+                redirectTo: window.location.origin + '/dashboard.html'
             }
         });
-        if (error) throw error;
+
+        console.log("OAuth response:", { data, error });
+
+        if (error) {
+            console.error("Supabase OAuth Error:", error);
+            alert("Error: " + error.message);
+            throw error;
+        }
     } catch (error) {
-        showToast(error.message || 'Google Sign-In failed', 'error');
+        console.error("Caught error in handleGoogleAuth:", error);
+        alert("Google Sign-In failed. Check console for details.");
     }
 }
 
