@@ -3,6 +3,16 @@
  * API helpers, date formatting, toast notifications, and loading states
  */
 
+// ── OAuth Popup Auto-Close ─────────────────────────────────
+// If this page was loaded inside an OAuth popup window, close it immediately!
+(function() {
+    if (window.opener || window.name === 'GoogleAuthPopup' || (window.name && (window.name.includes('Auth') || window.name.includes('Popup')))) {
+        try {
+            window.close();
+        } catch (e) {}
+    }
+})();
+
 // ── API Helper ─────────────────────────────────────────────
 
 /**
