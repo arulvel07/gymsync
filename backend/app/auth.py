@@ -29,7 +29,7 @@ async def get_current_user(
         print(f"Auth error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail=f"Auth error: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
