@@ -9,11 +9,15 @@ const SUPABASE_URL = 'https://owrqljgboratvcmuzpkx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cnFsamdib3JhdHZjbXV6cGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MjMwNTYsImV4cCI6MjEwMTQ5OTA1Nn0.GgVitgmpcehOnsBzjfWe8lrI4J3bMamhBTO2-LAW1mQ';
 
 try {
+    if (typeof window.supabase === 'undefined') {
+        alert("ERROR: The Supabase library failed to load! Please turn off your Ad-Blocker, Brave Shields, or check your internet connection.");
+        throw new Error("window.supabase is undefined. CDN blocked.");
+    }
+
     console.log("Is window.supabase defined?", typeof window.supabase);
     // Initialize the Supabase client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log("createClient returned:", supabase);
-
+    
     // Backend API URL
     const API_BASE_URL = 'https://gym-qxdu.onrender.com';
 
