@@ -8,16 +8,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initAuthPage() {
-    // Check if already logged in
-    const alreadyAuth = await redirectIfAuth();
-    if (alreadyAuth) return;
-    // Google Auth button
+    // Attach Google Auth listener IMMEDIATELY
     const googleBtn = document.querySelector('.google-auth-btn');
     if (googleBtn) {
-        console.log("Google button found and listener attached!");
         googleBtn.addEventListener('click', handleGoogleAuth);
+        console.log("Button listener attached successfully.");
     } else {
-        console.error("Google button NOT found!");
+        console.error("Could not find the Google Auth button in the HTML.");
+    }
+
+    // Now check if already logged in
+    try {
+        const alreadyAuth = await redirectIfAuth();
+        if (alreadyAuth) return;
+    } catch (e) {
+        console.error("Error checking auth status:", e);
     }
 }
 
