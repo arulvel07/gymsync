@@ -682,7 +682,7 @@ body {
     }
 }
 
-/* ── Responsive ─────────────────────────────── */
+/* ── Mobile & Tablet Responsiveness ──────────── */
 @media (max-width: 1024px) {
     .admin-layout {
         grid-template-columns: 1fr;
@@ -692,16 +692,112 @@ body {
     }
     .admin-content {
         margin-left: 0;
-        padding: 20px;
+        padding: 20px 16px;
     }
 }
 
-@media (max-width: 768px) {
-    .navbar {
-        padding: 0 16px;
+@media (max-width: 860px) {
+    /* Hero layout on landing page */
+    .hero-section > div > div {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
     }
-    .hero-section {
-        min-height: auto;
-        padding: 80px 0 40px;
+
+    /* Dashboard top 2-column grid (Gauge & Check-In) */
+    main > div[style*="grid-template-columns: 340px 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Dashboard middle 2-column grid (Breakdown & Heatmap) */
+    main > div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Smart Planner Pre-Plan Form */
+    #plan-form {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    #plan-form > div:nth-child(3),
+    #plan-form > button {
+        grid-column: span 2;
+    }
+
+    /* Smart Planner Crowd Forecast Form */
+    #planner-tab-forecast > div[style*="grid-template-columns: 200px 160px 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        font-size: 14px;
+    }
+
+    .navbar {
+        padding: 0 12px;
+        height: 52px;
+    }
+
+    .nav-brand {
+        font-size: 0.85rem;
+    }
+
+    main {
+        padding: 68px 14px 40px !important;
+    }
+
+    h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .glass-card {
+        padding: 16px !important;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Touch-friendly workout pills */
+    .workout-pill {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Segmented Tab Controls */
+    .tab-toggle {
+        width: 100%;
+    }
+    .tab-btn {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+    }
+
+    /* Peak Hours Heatmap horizontally scrollable on mobile */
+    #peak-hours-chart {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+
+    /* Tables horizontally scrollable */
+    .data-table {
+        font-size: 0.8rem;
+    }
+    .data-table th, .data-table td {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stack Pre-Plan form vertically */
+    #plan-form {
+        grid-template-columns: 1fr !important;
+    }
+    #plan-form > div:nth-child(3),
+    #plan-form > button {
+        grid-column: span 1;
+    }
+
+    /* Touch-friendly CTA buttons */
+    .hero-section a.btn-primary, .hero-section a.btn-secondary {
+        width: 100%;
     }
 }
