@@ -25,6 +25,51 @@ try {
     window.SUPABASE_CLIENT = supabase;
     window.API_BASE_URL = API_BASE_URL;
     console.log("window.SUPABASE_CLIENT successfully set!");
+
+    // ── Early Auth Listener ────────────────────────────────
+    // Set up onAuthStateChange IMMEDIATELY so we never miss events.
+    // This resolves with the authenticated session (or null).
+    const _hasOAuthParams = () => {
+        const h = window.location.hash;
+        const s = window.location.search;
+        return (h && (h.includes('access_token') || h.includes('error')))
+            || (s && (s.includes('code=') || s.includes('error=')));
+    };
+    const isOAuth = _hasOAuthParams();
+
+    window.SUPABASE_AUTH_READY = new Promise((resolve) => {
+        let settled = false;
+        const finish = (session) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(safetyTimer);
+            console.log('[Auth] Session resolved:', !!session, 'OAuth callback:', isOAuth);
+            resolve(session);
+        };
+
+        // Safety timeout — never hang forever
+        const safetyTimer = setTimeout(() => finish(null), isOAuth ? 5000 : 2000);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('[Auth] onAuthStateChange event:', event, 'hasSession:', !!session);
+
+            if (session) {
+                // Got a valid session — done
+                subscription.unsubscribe();
+                finish(session);
+            } else if (event === 'INITIAL_SESSION' && !isOAuth) {
+                // No session and not an OAuth callback — user is not logged in
+                subscription.unsubscribe();
+                finish(null);
+            }
+            // If INITIAL_SESSION fires null + OAuth params are present,
+            // keep waiting for SIGNED_IN after PKCE code exchange completes.
+        });
+    });
+
 } catch (e) {
     console.error("CRITICAL ERROR in supabase-config.js:", e);
+    // Ensure the promise exists even on error so pages don't hang
+    window.SUPABASE_AUTH_READY = Promise.resolve(null);
 }
+

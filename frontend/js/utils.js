@@ -260,65 +260,18 @@ function getWorkoutIcon(type) {
 // ── Auth Guard ─────────────────────────────────────────────
 
 /**
- * Helper: detect if the current URL has OAuth callback parameters.
- * Supabase may use hash fragments (implicit flow) or query params like ?code= (PKCE flow).
- */
-function _hasOAuthParams() {
-    const hash = window.location.hash;
-    const search = window.location.search;
-    return (hash && (hash.includes('access_token') || hash.includes('error')))
-        || (search && (search.includes('code=') || search.includes('error=')));
-}
-
-/**
- * Wait for Supabase to finish its initial auth processing.
- * Returns the resolved session (or null).
- * Handles all flows: stored session, hash tokens (implicit), and ?code= (PKCE).
- */
-function _waitForSession() {
-    const supabase = window.SUPABASE_CLIENT;
-    const isOAuthCallback = _hasOAuthParams();
-
-    return new Promise((resolve) => {
-        let settled = false;
-        const done = (session) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            sub.unsubscribe();
-            resolve(session);
-        };
-
-        // Timeout: short if no OAuth params, longer if we're processing a callback
-        const timer = setTimeout(() => done(null), isOAuthCallback ? 5000 : 2000);
-
-        const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('[Auth Guard] onAuthStateChange:', event, !!session);
-
-            if (session) {
-                // Got a session from any event — we're authenticated
-                done(session);
-            } else if (event === 'INITIAL_SESSION' && !isOAuthCallback) {
-                // INITIAL_SESSION with no session and no OAuth params in URL
-                // → user is genuinely not logged in, no need to wait further
-                done(null);
-            }
-            // If INITIAL_SESSION fires with null BUT we have OAuth params,
-            // keep waiting — the SIGNED_IN event will fire after code exchange.
-        });
-    });
-}
-
-/**
  * Redirect to login if not authenticated.
  * Call this on protected pages (e.g. dashboard).
+ * Awaits the session promise set up in supabase-config.js.
  */
 async function requireAuth() {
-    const session = await _waitForSession();
+    const session = await window.SUPABASE_AUTH_READY;
 
     if (session) {
-        // Clean OAuth artifacts from the URL
-        if (_hasOAuthParams()) {
+        // Clean OAuth artifacts from the URL if present
+        const h = window.location.hash;
+        const s = window.location.search;
+        if ((h && h.includes('access_token')) || (s && s.includes('code='))) {
             history.replaceState(null, '', window.location.pathname);
         }
         return session;
@@ -333,7 +286,7 @@ async function requireAuth() {
  * Call this on login/register pages.
  */
 async function redirectIfAuth() {
-    const session = await _waitForSession();
+    const session = await window.SUPABASE_AUTH_READY;
 
     if (session) {
         window.location.href = 'dashboard.html';
