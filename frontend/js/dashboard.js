@@ -362,10 +362,13 @@ async function loadPeakHours() {
                 <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted);">
                     <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-amber);"></span> Moderate
                 </span>
-                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted);">
-                    <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-red);"></span> High
-                </span>
             </div>
+        `;
+    } catch (err) {
+        console.error('Failed to load peak hours:', err);
+    }
+}
+
 // ── Smart Workout Planner & Crowd Forecast ─────────────────
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
