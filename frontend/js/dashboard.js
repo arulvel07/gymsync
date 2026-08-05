@@ -371,7 +371,29 @@ async function loadPeakHours() {
 
 // ── Smart Workout Planner & Crowd Forecast ─────────────────
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_ORDER = [
+    { name: 'Monday', idx: 1 },
+    { name: 'Tuesday', idx: 2 },
+    { name: 'Wednesday', idx: 3 },
+    { name: 'Thursday', idx: 4 },
+    { name: 'Friday', idx: 5 },
+    { name: 'Saturday', idx: 6 },
+    { name: 'Sunday', idx: 0 },
+];
+
+const TIME_SLOTS = [
+    { value: 6, label: '6:00 AM' },
+    { value: 7, label: '7:00 AM' },
+    { value: 8, label: '8:00 AM' },
+    { value: 9, label: '9:00 AM' },
+    { value: 10, label: '10:00 AM' },
+    { value: 16, label: '4:00 PM' },
+    { value: 17, label: '5:00 PM' },
+    { value: 18, label: '6:00 PM' },
+    { value: 19, label: '7:00 PM' },
+    { value: 20, label: '8:00 PM' },
+    { value: 21, label: '9:00 PM' },
+];
 
 async function initPlanner() {
     // Tab switching setup
@@ -497,38 +519,47 @@ function renderWeeklyTemplateGrid(templates) {
         templateMap[t.day_of_week] = t;
     });
 
-    container.innerHTML = DAYS_OF_WEEK.map((dayName, dayIdx) => {
-        const item = templateMap[dayIdx];
+    const gridHtml = DAYS_ORDER.map(d => {
+        const item = templateMap[d.idx];
         const workout = item ? item.workout_type : '';
         const hour = item ? item.planned_time_slot : 17;
 
+        const optionsHtml = TIME_SLOTS.map(s => 
+            `<option value="${s.value}" ${hour === s.value ? 'selected' : ''}>${s.label}</option>`
+        ).join('');
+
         return `
             <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">${dayName}</div>
-                <input type="text" id="tpl-input-${dayIdx}" class="form-input" value="${workout}" placeholder="e.g. Push" style="width: 100%; font-size: 0.78rem; padding: 4px 8px; margin-bottom: 6px;">
-                <select id="tpl-time-${dayIdx}" class="form-input" style="width: 100%; font-size: 0.72rem; padding: 4px;">
-                    <option value="6" ${hour === 6 ? 'selected' : ''}>6 AM</option>
-                    <option value="7" ${hour === 7 ? 'selected' : ''}>7 AM</option>
-                    <option value="8" ${hour === 8 ? 'selected' : ''}>8 AM</option>
-                    <option value="17" ${hour === 17 ? 'selected' : ''}>5 PM</option>
-                    <option value="18" ${hour === 18 ? 'selected' : ''}>6 PM</option>
-                    <option value="19" ${hour === 19 ? 'selected' : ''}>7 PM</option>
-                    <option value="20" ${hour === 20 ? 'selected' : ''}>8 PM</option>
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">${d.name}</div>
+                <input type="text" id="tpl-input-${d.idx}" class="form-input" value="${workout}" placeholder="e.g. Push" style="width: 100%; font-size: 0.78rem; padding: 6px 8px; margin-bottom: 6px;">
+                <select id="tpl-time-${d.idx}" class="form-input" style="width: 100%; font-size: 0.75rem; padding: 4px;">
+                    ${optionsHtml}
                 </select>
-                <button onclick="saveTemplateDay(${dayIdx})" class="btn-secondary" style="width: 100%; padding: 4px; font-size: 0.72rem; margin-top: 6px;">Save</button>
+                <button onclick="saveTemplateDay(${d.idx})" class="btn-secondary" style="width: 100%; padding: 4px; font-size: 0.72rem; margin-top: 6px;">Save</button>
             </div>
         `;
     }).join('');
+
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px;">
+            ${gridHtml}
+        </div>
+        <div style="text-align: right;">
+            <button onclick="saveAllTemplates()" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem;">Save All Days</button>
+        </div>
+    `;
 }
 
 async function saveTemplateDay(dayIdx) {
     const workoutVal = document.getElementById(`tpl-input-${dayIdx}`)?.value.trim();
     const timeVal = parseInt(document.getElementById(`tpl-time-${dayIdx}`)?.value || 17);
+    const dayObj = DAYS_ORDER.find(d => d.idx === dayIdx);
+    const dayName = dayObj ? dayObj.name : 'Day';
 
     if (!workoutVal) {
         try {
             await apiRequest(`/api/planner/template/${dayIdx}`, { method: 'DELETE' });
-            showToast(`Cleared ${DAYS_OF_WEEK[dayIdx]} template`, 'info');
+            showToast(`Cleared ${dayName} template`, 'info');
             await loadMySchedule();
         } catch (e) {}
         return;
@@ -543,11 +574,34 @@ async function saveTemplateDay(dayIdx) {
                 workout_type: workoutVal,
             }),
         });
-        showToast(`Updated ${DAYS_OF_WEEK[dayIdx]} routine!`, 'success');
+        showToast(`Updated ${dayName} routine!`, 'success');
         await loadMySchedule();
     } catch (err) {
         showToast(err.message || 'Failed to save template', 'error');
     }
+}
+
+async function saveAllTemplates() {
+    let count = 0;
+    for (const d of DAYS_ORDER) {
+        const workoutVal = document.getElementById(`tpl-input-${d.idx}`)?.value.trim();
+        const timeVal = parseInt(document.getElementById(`tpl-time-${d.idx}`)?.value || 17);
+        if (workoutVal) {
+            try {
+                await apiRequest('/api/planner/template', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        day_of_week: d.idx,
+                        planned_time_slot: timeVal,
+                        workout_type: workoutVal,
+                    }),
+                });
+                count++;
+            } catch (e) {}
+        }
+    }
+    showToast(`Saved weekly routine for ${count} days!`, 'success');
+    await loadMySchedule();
 }
 
 async function loadCrowdForecast() {
@@ -595,6 +649,7 @@ async function loadCrowdForecast() {
 window.switchPlannerTab = switchPlannerTab;
 window.deletePlan = deletePlan;
 window.saveTemplateDay = saveTemplateDay;
+window.saveAllTemplates = saveAllTemplates;
 
 
 // ── Cleanup ────────────────────────────────────────────────

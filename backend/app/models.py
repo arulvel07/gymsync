@@ -15,6 +15,13 @@ class CheckOutRequest(BaseModel):
     session_id: str
 
 
+class UpdateConfigRequest(BaseModel):
+    max_capacity: Optional[int] = None
+    open_time: Optional[str] = None   # "HH:MM"
+    close_time: Optional[str] = None  # "HH:MM"
+    is_open: Optional[bool] = None
+
+
 class SavePlanRequest(BaseModel):
     planned_date: str  # "YYYY-MM-DD"
     planned_time_slot: int = 17
