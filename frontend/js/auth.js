@@ -37,7 +37,11 @@ async function handleGoogleAuth(e) {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/dashboard.html'
+                redirectTo: window.location.origin + '/dashboard.html',
+                queryParams: {
+                    hd: 'iiitdm.ac.in', // Force Google to only accept college emails
+                    prompt: 'select_account' // Always ask them to pick an account so they aren't auto-logged into a wrong one
+                }
             }
         });
 
