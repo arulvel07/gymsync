@@ -8,7 +8,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initAuthPage() {
-    // Attach Google Auth listener IMMEDIATELY
+    const supabase = window.SUPABASE_CLIENT;
+
+    // 1. If we are inside the popup window and signed in, close popup immediately!
+    if (window.opener) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            window.close();
+            return;
+        }
+    }
+
+    // 2. Listen for auth state change (when popup logs in, main window detects it)
+    if (supabase && supabase.auth) {
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+                if (window.opener) {
+                    window.close();
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+    }
+
+    // Attach Google Auth button listener
     const googleBtn = document.querySelector('.google-auth-btn');
     if (googleBtn) {
         googleBtn.addEventListener('click', handleGoogleAuth);
@@ -17,7 +41,7 @@ async function initAuthPage() {
         console.error("Could not find the Google Auth button in the HTML.");
     }
 
-    // Now check if already logged in
+    // Check if main window is already logged in
     try {
         const alreadyAuth = await redirectIfAuth();
         if (alreadyAuth) return;
@@ -28,11 +52,10 @@ async function initAuthPage() {
 
 async function handleGoogleAuth(e) {
     e.preventDefault();
-    console.log("Google button clicked! Initiating OAuth...");
+    console.log("Google button clicked! Launching OAuth popup window...");
 
     try {
         const supabase = window.SUPABASE_CLIENT;
-        console.log("Supabase client:", supabase);
 
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
@@ -46,8 +69,6 @@ async function handleGoogleAuth(e) {
             }
         });
 
-        console.log("OAuth response:", { data, error });
-
         if (error) {
             console.error("Supabase OAuth Error:", error);
             alert("Error: " + error.message);
@@ -55,7 +76,17 @@ async function handleGoogleAuth(e) {
         }
 
         if (data?.url) {
-            window.open(data.url, '_blank');
+            // Calculate screen center for sleek 500x620 popup window
+            const width = 500;
+            const height = 620;
+            const left = Math.max(0, (window.screen.width / 2) - (width / 2));
+            const top = Math.max(0, (window.screen.height / 2) - (height / 2));
+
+            window.open(
+                data.url,
+                'GoogleAuthPopup',
+                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`
+            );
         }
     } catch (error) {
         console.error("Caught error in handleGoogleAuth:", error);
