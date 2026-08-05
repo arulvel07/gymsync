@@ -4,14 +4,26 @@
  */
 
 // ── OAuth Popup Auto-Close ─────────────────────────────────
-// If this page was loaded inside an OAuth popup window, close it immediately!
-(function() {
-    if (window.opener || window.name === 'GoogleAuthPopup' || (window.name && (window.name.includes('Auth') || window.name.includes('Popup')))) {
-        try {
-            window.close();
-        } catch (e) {}
+// Ensures Supabase parses the token into localStorage before closing the popup window
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.opener || window.name === 'GoogleAuthPopup') {
+        const supabase = window.SUPABASE_CLIENT;
+        if (supabase) {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    setTimeout(() => { try { window.close(); } catch (e) {} }, 300);
+                } else {
+                    supabase.auth.onAuthStateChange((event, session) => {
+                        if (session) {
+                            setTimeout(() => { try { window.close(); } catch (e) {} }, 300);
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
     }
-})();
+});
 
 // ── API Helper ─────────────────────────────────────────────
 

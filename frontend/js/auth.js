@@ -82,11 +82,28 @@ async function handleGoogleAuth(e) {
             const left = Math.max(0, (window.screen.width / 2) - (width / 2));
             const top = Math.max(0, (window.screen.height / 2) - (height / 2));
 
-            window.open(
+            const popup = window.open(
                 data.url,
                 'GoogleAuthPopup',
                 `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`
             );
+
+            // Poll for session completion or popup closure in the main window
+            const checkTimer = setInterval(async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    clearInterval(checkTimer);
+                    if (popup && !popup.closed) {
+                        try { popup.close(); } catch (e) {}
+                    }
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+
+                if (popup && popup.closed) {
+                    clearInterval(checkTimer);
+                }
+            }, 500);
         }
     } catch (error) {
         console.error("Caught error in handleGoogleAuth:", error);
