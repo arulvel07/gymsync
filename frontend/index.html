@@ -38,7 +38,6 @@
         </a>
         <div class="nav-links">
             <a href="#live" class="nav-link">Live Status</a>
-            <a href="#features" class="nav-link">Features</a>
             <a href="login.html" class="btn-primary" style="padding: 6px 14px; font-size: 0.82rem;">Student Login</a>
         </div>
     </nav>
@@ -152,84 +151,6 @@
             <div class="glass-card" style="padding: 24px;">
                 <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; margin-bottom: 14px;">Equipment & Muscle Focus Split</div>
                 <div id="live-workout-dist"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ─── System Modules Section ──────────────────────── -->
-    <section id="features" style="max-width: 1140px; margin: 0 auto; padding: 40px 24px 80px;">
-        <div style="margin-bottom: 36px;">
-            <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 6px;" class="gradient-text">
-                System Modules & Features
-            </h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                Built for efficiency, student privacy, and smooth campus gym operations.
-            </p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
-
-            <!-- Feature 1 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-blue);">●</span> Real-Time Occupancy Telemetry
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Live count tracking based on active student check-ins and check-outs. Helps avoid peak crowding.
-                </p>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-indigo);">●</span> Smart Workout Focus & Custom Inputs
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Students select standard split categories (Push, Pull, Legs) or type custom routines (e.g. Biceps & Triceps).
-                </p>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-cyan);">●</span> Pre-Planning & Weekly Routine Templates
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Schedule workouts for specific upcoming dates or set a recurring Monday-Sunday weekly template.
-                </p>
-            </div>
-
-            <!-- Feature 4 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-emerald);">●</span> Predictive Crowd Forecasting
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Combines student pre-plans, weekly routines, and 30-day historical gym traffic to forecast crowd density.
-                </p>
-            </div>
-
-            <!-- Feature 5 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-amber);">●</span> Single Sign-On (Google SSO)
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Restricted strictly to official <code>@iiitdm.ac.in</code> student emails with automatic roll number extraction.
-                </p>
-            </div>
-
-            <!-- Feature 6 -->
-            <div class="glass-card" style="padding: 24px;">
-                <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--accent-rose);">●</span> Administrative Controls & CSV Export
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55;">
-                    Full operational dashboard for gym supervisors to manage facility capacity, view attendance logs, and export reports.
-                </p>
-            </div>
-
-        </div>
     </section>
 
     <!-- ─── Footer ──────────────────────────────────────── -->
@@ -245,8 +166,8 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="js/supabase-config.js?v=1.0.6"></script>
-    <script src="js/utils.js?v=1.0.6"></script>
+    <script src="js/supabase-config.js?v=1.0.8"></script>
+    <script src="js/utils.js?v=1.0.8"></script>
     <script>
         // Landing page — load public occupancy data
         document.addEventListener('DOMContentLoaded', async () => {

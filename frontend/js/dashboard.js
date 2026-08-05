@@ -347,7 +347,7 @@ async function loadPeakHours() {
                     const opacity = Math.max(0.15, intensity);
                     return `
                         <div class="heatmap-cell" 
-                             style="width: 52px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: ${level.color}${Math.round(opacity * 40).toString(16).padStart(2, '0')}; border: 1px solid ${level.color}22;"
+                             style="width: 52px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: ${level.color}${Math.round(opacity * 40).toString(16).padStart(2, '0')}; border: 1px solid ${level.color}33;"
                              title="${formatHour(h.hour)}: ~${h.avg_visitors} visitors">
                             <span style="font-size: 0.7rem; color: var(--text-secondary);">${formatHour(h.hour)}</span>
                             <span class="stat-number" style="font-size: 0.85rem; color: ${level.color};">${h.avg_visitors}</span>
@@ -355,12 +355,15 @@ async function loadPeakHours() {
                     `;
                 }).join('')}
             </div>
-            <div style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
-                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted);">
-                    <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-green);"></span> Low
+            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #10b981;"></span> Low (0-30%)
                 </span>
-                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted);">
-                    <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-amber);"></span> Moderate
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #f59e0b;"></span> Moderate (30-70%)
+                </span>
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span style="width: 8px; height: 8px; border-radius: 2px; background: #f43f5e;"></span> High (70%+)
                 </span>
             </div>
         `;
@@ -428,12 +431,17 @@ async function initPlanner() {
 }
 
 function switchPlannerTab(tabName) {
-    const tabs = ['plan', 'template', 'forecast'];
+    const tabs = [
+        { id: 'planner', key: 'plan' },
+        { id: 'template', key: 'template' },
+        { id: 'forecast', key: 'forecast' }
+    ];
     tabs.forEach(t => {
-        const btn = document.getElementById(`tab-btn-${t}`);
-        const content = document.getElementById(`planner-tab-${t}`);
-        if (btn) btn.classList.toggle('active', t === tabName);
-        if (content) content.style.display = t === tabName ? 'block' : 'none';
+        const btn = document.getElementById(`tab-btn-${t.id}`);
+        const content = document.getElementById(`planner-tab-${t.key}`);
+        const isActive = (t.key === tabName);
+        if (btn) btn.classList.toggle('active', isActive);
+        if (content) content.style.display = isActive ? 'block' : 'none';
     });
 
     if (tabName === 'forecast') {

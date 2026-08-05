@@ -565,23 +565,15 @@ body {
 
 /* ── Hero Section ───────────────────────────── */
 .hero-section {
-    min-height: 85vh;
-    display: flex;
-    align-items: center;
-    background: var(--gradient-hero);
+    min-height: auto;
+    padding: 90px 0 60px;
+    background: var(--bg-primary);
     position: relative;
-    overflow: hidden;
     border-bottom: 1px solid var(--border-subtle);
 }
 
 .hero-grid-overlay {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black, transparent);
+    display: none;
 }
 
 /* ── Admin Sidebar ──────────────────────────── */
