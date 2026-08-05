@@ -600,13 +600,13 @@ Backend validates the JWT by calling supabase.auth.get_user(token)
 
 ## 📄 License
 
-This project was built for **IIITDM Kancheepuram** as a campus facility management solution.
+This project was built for **Campus sync hackathon** as a campus facility management solution.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for IIITDM Kancheepuram**
+**Built with ❤️ *
 
 [Live Demo](https://gymsync.vercel.app) · [API Docs](https://gym-qxdu.onrender.com/docs) · [Report Bug](https://github.com/arulvel07/gymsync/issues)
 
