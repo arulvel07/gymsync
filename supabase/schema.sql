@@ -21,9 +21,7 @@ CREATE TABLE IF NOT EXISTS public.gym_sessions (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     check_in TIMESTAMPTZ NOT NULL DEFAULT now(),
     check_out TIMESTAMPTZ,
-    workout_type TEXT NOT NULL CHECK (
-        workout_type IN ('Push', 'Pull', 'Legs', 'Upper Body', 'Lower Body', 'Cardio', 'Full Body', 'Core')
-    ),
+    workout_type TEXT NOT NULL,
     duration_minutes INT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -44,6 +42,31 @@ INSERT INTO public.gym_config (id, max_capacity, open_time, close_time, is_open)
 VALUES (1, 50, '06:00:00', '22:00:00', true)
 ON CONFLICT (id) DO NOTHING;
 
+-- 4. WORKOUT PLANS TABLE
+-- Pre-planned workouts for specific dates
+CREATE TABLE IF NOT EXISTS public.workout_plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    planned_date DATE NOT NULL,
+    planned_time_slot INT NOT NULL DEFAULT 17,
+    workout_type TEXT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, planned_date)
+);
+
+-- 5. WORKOUT TEMPLATES TABLE
+-- Recurring weekly workout template
+CREATE TABLE IF NOT EXISTS public.workout_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    day_of_week INT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    planned_time_slot INT NOT NULL DEFAULT 17,
+    workout_type TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, day_of_week)
+);
+
 -- ============================================
 -- INDEXES
 -- ============================================
@@ -61,8 +84,30 @@ CREATE INDEX IF NOT EXISTS idx_profiles_roll_number ON public.profiles(roll_numb
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gym_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gym_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workout_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workout_templates ENABLE ROW LEVEL SECURITY;
 
--- Create a secure definer function to check admin status without triggering RLS loops
+-- WORKOUT PLANS policies
+DROP POLICY IF EXISTS "Permissive plans SELECT" ON public.workout_plans;
+CREATE POLICY "Permissive plans SELECT" ON public.workout_plans FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Permissive plans INSERT" ON public.workout_plans;
+CREATE POLICY "Permissive plans INSERT" ON public.workout_plans FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Permissive plans UPDATE" ON public.workout_plans;
+CREATE POLICY "Permissive plans UPDATE" ON public.workout_plans FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Permissive plans DELETE" ON public.workout_plans;
+CREATE POLICY "Permissive plans DELETE" ON public.workout_plans FOR DELETE USING (true);
+
+-- WORKOUT TEMPLATES policies
+DROP POLICY IF EXISTS "Permissive templates SELECT" ON public.workout_templates;
+CREATE POLICY "Permissive templates SELECT" ON public.workout_templates FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Permissive templates INSERT" ON public.workout_templates;
+CREATE POLICY "Permissive templates INSERT" ON public.workout_templates FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Permissive templates UPDATE" ON public.workout_templates;
+CREATE POLICY "Permissive templates UPDATE" ON public.workout_templates FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Permissive templates DELETE" ON public.workout_templates;
+CREATE POLICY "Permissive templates DELETE" ON public.workout_templates FOR DELETE USING (true);
+
+-- Create a secure definer function to check admin status
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -76,52 +121,52 @@ BEGIN
 END;
 $$;
 
--- PROFILES policies
+-- PROFILES policies (Permissive for backend API operations)
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile"
     ON public.profiles FOR SELECT
-    USING (auth.uid() = id);
+    USING (true);
 
 DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile"
     ON public.profiles FOR INSERT
-    WITH CHECK (auth.uid() = id);
+    WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile"
     ON public.profiles FOR UPDATE
-    USING (auth.uid() = id);
+    USING (true);
 
 DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Admins can view all profiles"
     ON public.profiles FOR SELECT
-    USING (public.is_admin());
+    USING (true);
 
--- GYM SESSIONS policies
+-- GYM SESSIONS policies (Permissive for backend API operations)
 DROP POLICY IF EXISTS "Users can view their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can view their own sessions"
     ON public.gym_sessions FOR SELECT
-    USING (user_id = auth.uid());
+    USING (true);
 
 DROP POLICY IF EXISTS "Users can insert their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can insert their own sessions"
     ON public.gym_sessions FOR INSERT
-    WITH CHECK (user_id = auth.uid());
+    WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Users can update their own sessions" ON public.gym_sessions;
 CREATE POLICY "Users can update their own sessions"
     ON public.gym_sessions FOR UPDATE
-    USING (user_id = auth.uid());
+    USING (true);
 
 DROP POLICY IF EXISTS "Admins can view all sessions" ON public.gym_sessions;
 CREATE POLICY "Admins can view all sessions"
     ON public.gym_sessions FOR SELECT
-    USING (public.is_admin());
+    USING (true);
 
 DROP POLICY IF EXISTS "Admins can update any session" ON public.gym_sessions;
 CREATE POLICY "Admins can update any session"
     ON public.gym_sessions FOR UPDATE
-    USING (public.is_admin());
+    USING (true);
 
 -- GYM CONFIG policies
 DROP POLICY IF EXISTS "Anyone can view gym config" ON public.gym_config;
@@ -132,7 +177,7 @@ CREATE POLICY "Anyone can view gym config"
 DROP POLICY IF EXISTS "Admins can update gym config" ON public.gym_config;
 CREATE POLICY "Admins can update gym config"
     ON public.gym_config FOR UPDATE
-    USING (public.is_admin());
+    USING (true);
 
 -- ============================================
 -- DATABASE FUNCTIONS

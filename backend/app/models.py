@@ -15,11 +15,45 @@ class CheckOutRequest(BaseModel):
     session_id: str
 
 
-class UpdateConfigRequest(BaseModel):
-    max_capacity: Optional[int] = None
-    open_time: Optional[str] = None   # "HH:MM"
-    close_time: Optional[str] = None  # "HH:MM"
-    is_open: Optional[bool] = None
+class SavePlanRequest(BaseModel):
+    planned_date: str  # "YYYY-MM-DD"
+    planned_time_slot: int = 17
+    workout_type: str
+    notes: Optional[str] = None
+
+
+class SaveTemplateRequest(BaseModel):
+    day_of_week: int  # 0-6
+    planned_time_slot: int = 17
+    workout_type: str
+
+
+class PlanResponse(BaseModel):
+    id: str
+    user_id: str
+    planned_date: str
+    planned_time_slot: int
+    workout_type: str
+    notes: Optional[str] = None
+
+
+class TemplateResponse(BaseModel):
+    id: str
+    user_id: str
+    day_of_week: int
+    planned_time_slot: int
+    workout_type: str
+
+
+class CrowdForecastResponse(BaseModel):
+    target_date: str
+    hour: int
+    predicted_count: int
+    max_capacity: int
+    predicted_percentage: float
+    planned_students_count: int
+    historical_avg_visitors: float
+    workout_breakdown: list[dict]
 
 
 # ── Responses ─────────────────────────────────────────────

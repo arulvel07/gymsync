@@ -24,6 +24,7 @@ async function initDashboard() {
         checkActiveSession(),
         loadSessionHistory(),
         loadPeakHours(),
+        initPlanner(),
     ]);
 
     // Setup workout pills
@@ -216,10 +217,19 @@ function startTimer() {
 
 function setupWorkoutPills() {
     const pills = document.querySelectorAll('.workout-pill');
+    const customContainer = document.getElementById('custom-workout-container');
+
     pills.forEach(pill => {
         pill.addEventListener('click', () => {
             pills.forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
+
+            if (pill.dataset.type === 'Others') {
+                if (customContainer) customContainer.style.display = 'block';
+                document.getElementById('custom-workout-input')?.focus();
+            } else {
+                if (customContainer) customContainer.style.display = 'none';
+            }
         });
     });
 }
@@ -231,7 +241,17 @@ async function handleCheckIn() {
         return;
     }
 
-    const workoutType = selected.dataset.type;
+    let workoutType = selected.dataset.type;
+    if (workoutType === 'Others') {
+        const customInput = document.getElementById('custom-workout-input');
+        const val = customInput ? customInput.value.strip ? customInput.value.trim() : customInput.value : '';
+        if (!val) {
+            showToast('Please type your custom workout details', 'error');
+            return;
+        }
+        workoutType = val;
+    }
+
     const btn = document.getElementById('checkin-btn');
     setButtonLoading(btn, true);
 
@@ -346,11 +366,232 @@ async function loadPeakHours() {
                     <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent-red);"></span> High
                 </span>
             </div>
-        `;
-    } catch (err) {
-        console.error('Failed to load peak hours:', err);
+// ── Smart Workout Planner & Crowd Forecast ─────────────────
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+async function initPlanner() {
+    // Tab switching setup
+    document.getElementById('tab-btn-planner')?.addEventListener('click', () => switchPlannerTab('plan'));
+    document.getElementById('tab-btn-template')?.addEventListener('click', () => switchPlannerTab('template'));
+    document.getElementById('tab-btn-forecast')?.addEventListener('click', () => switchPlannerTab('forecast'));
+
+    // Plan form submit
+    document.getElementById('plan-form')?.addEventListener('submit', handleSavePlan);
+
+    // Set default forecast date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowIso = tomorrow.toISOString().split('T')[0];
+
+    const dateInput = document.getElementById('plan-date-input');
+    if (dateInput) dateInput.value = tomorrowIso;
+
+    const forecastDateInput = document.getElementById('forecast-date-input');
+    if (forecastDateInput) {
+        forecastDateInput.value = tomorrowIso;
+        forecastDateInput.addEventListener('change', loadCrowdForecast);
+    }
+
+    const forecastTimeSelect = document.getElementById('forecast-time-select');
+    if (forecastTimeSelect) {
+        forecastTimeSelect.addEventListener('change', loadCrowdForecast);
+    }
+
+    // Load initial schedule & template
+    await loadMySchedule();
+}
+
+function switchPlannerTab(tabName) {
+    const tabs = ['plan', 'template', 'forecast'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`planner-tab-${t}`);
+        if (btn) btn.classList.toggle('active', t === tabName);
+        if (content) content.style.display = t === tabName ? 'block' : 'none';
+    });
+
+    if (tabName === 'forecast') {
+        loadCrowdForecast();
     }
 }
+
+async function loadMySchedule() {
+    try {
+        const data = await apiRequest('/api/planner/my-schedule');
+        renderUpcomingPlans(data.plans || []);
+        renderWeeklyTemplateGrid(data.templates || []);
+    } catch (err) {
+        console.error('Failed to load schedule:', err);
+    }
+}
+
+function renderUpcomingPlans(plans) {
+    const container = document.getElementById('upcoming-plans-list');
+    if (!container) return;
+
+    if (!plans.length) {
+        container.innerHTML = `<p style="font-size: 0.82rem; color: var(--text-muted); padding: 10px 0;">No upcoming date-specific plans. Use the form above to schedule!</p>`;
+        return;
+    }
+
+    container.innerHTML = plans.map(p => `
+        <div style="min-width: 140px; padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="font-weight: 600; font-size: 0.85rem; color: var(--accent-blue);">${formatDate(p.planned_date)}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${formatHour(p.planned_time_slot)}</div>
+                <div style="font-size: 0.9rem; font-weight: 600; margin-top: 6px;">${getWorkoutIcon(p.workout_type)} ${p.workout_type}</div>
+            </div>
+            <button onclick="deletePlan('${p.planned_date}')" style="background: none; border: none; color: var(--accent-red); font-size: 0.72rem; cursor: pointer; text-align: right; margin-top: 8px;">Delete</button>
+        </div>
+    `).join('');
+}
+
+async function handleSavePlan(e) {
+    e.preventDefault();
+    const dateVal = document.getElementById('plan-date-input')?.value;
+    const timeVal = parseInt(document.getElementById('plan-time-select')?.value || 17);
+    const workoutVal = document.getElementById('plan-workout-input')?.value;
+
+    if (!dateVal || !workoutVal) {
+        showToast('Please fill all fields', 'error');
+        return;
+    }
+
+    try {
+        await apiRequest('/api/planner/plan', {
+            method: 'POST',
+            body: JSON.stringify({
+                planned_date: dateVal,
+                planned_time_slot: timeVal,
+                workout_type: workoutVal,
+            }),
+        });
+        showToast(`Planned ${workoutVal} for ${formatDate(dateVal)}!`, 'success');
+        document.getElementById('plan-workout-input').value = '';
+        await loadMySchedule();
+    } catch (err) {
+        showToast(err.message || 'Failed to save plan', 'error');
+    }
+}
+
+async function deletePlan(dateStr) {
+    try {
+        await apiRequest(`/api/planner/plan/${dateStr}`, { method: 'DELETE' });
+        showToast('Plan removed', 'info');
+        await loadMySchedule();
+    } catch (err) {
+        showToast('Failed to delete plan', 'error');
+    }
+}
+
+function renderWeeklyTemplateGrid(templates) {
+    const container = document.getElementById('weekly-template-grid');
+    if (!container) return;
+
+    const templateMap = {};
+    templates.forEach(t => {
+        templateMap[t.day_of_week] = t;
+    });
+
+    container.innerHTML = DAYS_OF_WEEK.map((dayName, dayIdx) => {
+        const item = templateMap[dayIdx];
+        const workout = item ? item.workout_type : '';
+        const hour = item ? item.planned_time_slot : 17;
+
+        return `
+            <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">${dayName}</div>
+                <input type="text" id="tpl-input-${dayIdx}" class="form-input" value="${workout}" placeholder="e.g. Push" style="width: 100%; font-size: 0.78rem; padding: 4px 8px; margin-bottom: 6px;">
+                <select id="tpl-time-${dayIdx}" class="form-input" style="width: 100%; font-size: 0.72rem; padding: 4px;">
+                    <option value="6" ${hour === 6 ? 'selected' : ''}>6 AM</option>
+                    <option value="7" ${hour === 7 ? 'selected' : ''}>7 AM</option>
+                    <option value="8" ${hour === 8 ? 'selected' : ''}>8 AM</option>
+                    <option value="17" ${hour === 17 ? 'selected' : ''}>5 PM</option>
+                    <option value="18" ${hour === 18 ? 'selected' : ''}>6 PM</option>
+                    <option value="19" ${hour === 19 ? 'selected' : ''}>7 PM</option>
+                    <option value="20" ${hour === 20 ? 'selected' : ''}>8 PM</option>
+                </select>
+                <button onclick="saveTemplateDay(${dayIdx})" class="btn-secondary" style="width: 100%; padding: 4px; font-size: 0.72rem; margin-top: 6px;">Save</button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function saveTemplateDay(dayIdx) {
+    const workoutVal = document.getElementById(`tpl-input-${dayIdx}`)?.value.trim();
+    const timeVal = parseInt(document.getElementById(`tpl-time-${dayIdx}`)?.value || 17);
+
+    if (!workoutVal) {
+        try {
+            await apiRequest(`/api/planner/template/${dayIdx}`, { method: 'DELETE' });
+            showToast(`Cleared ${DAYS_OF_WEEK[dayIdx]} template`, 'info');
+            await loadMySchedule();
+        } catch (e) {}
+        return;
+    }
+
+    try {
+        await apiRequest('/api/planner/template', {
+            method: 'POST',
+            body: JSON.stringify({
+                day_of_week: dayIdx,
+                planned_time_slot: timeVal,
+                workout_type: workoutVal,
+            }),
+        });
+        showToast(`Updated ${DAYS_OF_WEEK[dayIdx]} routine!`, 'success');
+        await loadMySchedule();
+    } catch (err) {
+        showToast(err.message || 'Failed to save template', 'error');
+    }
+}
+
+async function loadCrowdForecast() {
+    const dateVal = document.getElementById('forecast-date-input')?.value;
+    const timeVal = document.getElementById('forecast-time-select')?.value || 17;
+
+    if (!dateVal) return;
+
+    try {
+        const data = await publicApiRequest(`/api/planner/crowd-forecast?target_date=${dateVal}&hour=${timeVal}`);
+        
+        const countDisplay = document.getElementById('forecast-count-display');
+        const subtext = document.getElementById('forecast-subtext');
+        const breakdownList = document.getElementById('forecast-breakdown-list');
+
+        const level = getOccupancyLevel(data.predicted_percentage);
+
+        if (countDisplay) {
+            countDisplay.textContent = `${data.predicted_count} / ${data.max_capacity}`;
+            countDisplay.style.color = level.color;
+        }
+
+        if (subtext) {
+            subtext.innerHTML = `<span class="badge" style="background: ${level.color}22; color: ${level.color};">● ${level.label} (${data.predicted_percentage}%)</span><br><span style="font-size: 0.75rem; margin-top: 4px; display: inline-block;">${data.planned_students_count} students pre-planned for ${formatHour(parseInt(timeVal))}</span>`;
+        }
+
+        if (breakdownList) {
+            if (!data.workout_breakdown || !data.workout_breakdown.length) {
+                breakdownList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.8rem;">No specific workout focus recorded for this slot yet.</p>`;
+            } else {
+                breakdownList.innerHTML = data.workout_breakdown.map(b => `
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span>${getWorkoutIcon(b.workout_type)} ${b.workout_type}</span>
+                        <span class="stat-number" style="color: var(--accent-blue);">${b.count} student(s)</span>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (err) {
+        console.error('Failed to load crowd forecast:', err);
+    }
+}
+
+// Make functions globally available for inline onclick
+window.switchPlannerTab = switchPlannerTab;
+window.deletePlan = deletePlan;
+window.saveTemplateDay = saveTemplateDay;
 
 
 // ── Cleanup ────────────────────────────────────────────────

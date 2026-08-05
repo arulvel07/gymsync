@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.routes import attendance, analytics, admin
+from app.routes import attendance, analytics, admin, planner
 
 app = FastAPI(
     title="Campus Gym API",
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(attendance.router)
 app.include_router(analytics.router)
 app.include_router(admin.router)
+app.include_router(planner.router)
 
 
 @app.get("/", tags=["health"])

@@ -85,12 +85,10 @@ async def check_in(
 ):
     """Check into the gym with a workout type."""
     db = get_supabase()
-    ensure_user_profile(db, user)
-
-    if body.workout_type not in VALID_WORKOUT_TYPES:
+    if not body.workout_type or not body.workout_type.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid workout type. Must be one of: {VALID_WORKOUT_TYPES}",
+            detail="Workout type cannot be empty",
         )
 
     try:
