@@ -127,12 +127,12 @@ async function handleRegister(e) {
         return;
     }
 
-    // Optional: Restrict to institute email
-    // if (!email.endsWith('@iiitdm.ac.in')) {
-    //     showFieldError('reg-email', 'Please use your @iiitdm.ac.in email');
-    //     setButtonLoading(btn, false);
-    //     return;
-    // }
+    // Restrict to institute email
+    if (!email.endsWith('@iiitdm.ac.in')) {
+        showFieldError('reg-email', 'Please use your @iiitdm.ac.in email');
+        setButtonLoading(btn, false);
+        return;
+    }
 
     try {
         const supabase = window.SUPABASE_CLIENT;
