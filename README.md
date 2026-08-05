@@ -606,7 +606,7 @@ This project was built for **Campus sync hackathon** as a campus facility manage
 
 <div align="center">
 
-**Built with ❤️ *
+**Built with ❤️**
 
 [Live Demo](https://gymsync.vercel.app) · [API Docs](https://gym-qxdu.onrender.com/docs) · [Report Bug](https://github.com/arulvel07/gymsync/issues)
 
