@@ -37,10 +37,11 @@ async function handleGoogleAuth(e) {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
+                skipBrowserRedirect: true,
                 redirectTo: window.location.origin + '/dashboard.html',
                 queryParams: {
                     hd: 'iiitdm.ac.in', // Force Google to only accept college emails
-                    prompt: 'select_account' // Always ask them to pick an account so they aren't auto-logged into a wrong one
+                    prompt: 'select_account' // Always ask them to pick an account
                 }
             }
         });
@@ -51,6 +52,10 @@ async function handleGoogleAuth(e) {
             console.error("Supabase OAuth Error:", error);
             alert("Error: " + error.message);
             throw error;
+        }
+
+        if (data?.url) {
+            window.open(data.url, '_blank');
         }
     } catch (error) {
         console.error("Caught error in handleGoogleAuth:", error);
