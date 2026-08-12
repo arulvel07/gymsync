@@ -72,6 +72,21 @@ async function publicApiRequest(endpoint) {
 // ── Date/Time Formatting ───────────────────────────────────
 
 /**
+ * Safely parse an ISO date string as UTC Date object.
+ */
+function parseUTC(dateStr) {
+    if (!dateStr) return new Date();
+    let s = String(dateStr).trim();
+    if (!s.includes('Z') && !s.includes('+') && !s.includes('-')) {
+        s = s.replace(' ', 'T') + 'Z';
+    } else {
+        s = s.replace(' ', 'T');
+    }
+    return new Date(s);
+}
+window.parseUTC = parseUTC;
+
+/**
  * Format an ISO datetime string to a human-readable date.
  */
 function formatDate(isoString) {
@@ -130,7 +145,7 @@ function formatHour(hour) {
  * Get elapsed time string from a start ISO time.
  */
 function getElapsedTime(startIso) {
-    const start = new Date(startIso);
+    const start = parseUTC(startIso);
     const now = new Date();
     const diffMs = now - start;
     const hours = Math.floor(diffMs / 3600000);

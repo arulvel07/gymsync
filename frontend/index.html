@@ -169,8 +169,26 @@
     <script src="js/supabase-config.js?v=1.0.9"></script>
     <script src="js/utils.js?v=1.0.9"></script>
     <script>
-        // Landing page — load public occupancy data
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in or returning from OAuth redirect
+            const supabase = window.SUPABASE_CLIENT;
+            if (supabase) {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) {
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                    supabase.auth.onAuthStateChange((event, session) => {
+                        if (session) {
+                            window.location.href = 'dashboard.html';
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Index auth check note:', e);
+                }
+            }
+
             await loadLandingOccupancy();
             // Refresh every 30 seconds
             setInterval(loadLandingOccupancy, 30000);
