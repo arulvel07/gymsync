@@ -541,19 +541,15 @@ async function loadAdminQRToken(forceRotate = false) {
 
             if (supabase) {
                 try {
-                    const { error: upsertErr } = await supabase.from('qr_tokens').upsert([{
-                        id: '00000000-0000-0000-0000-000000000001',
+                    // Wipe all old token rows first so database maintains max 1 row
+                    await supabase.from('qr_tokens').delete().neq('token', 'dummy_keep');
+                    
+                    // Insert active token row
+                    await supabase.from('qr_tokens').insert([{
                         token: token,
                         created_at: new Date().toISOString(),
                         expires_at: expiresAtIso,
                     }]);
-                    if (upsertErr) {
-                        await supabase.from('qr_tokens').insert([{
-                            token: token,
-                            created_at: new Date().toISOString(),
-                            expires_at: expiresAtIso,
-                        }]);
-                    }
                 } catch (dbErr) {
                     console.warn('Supabase token update exception:', dbErr);
                 }
@@ -574,11 +570,25 @@ async function loadAdminQRToken(forceRotate = false) {
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            if (qrImage) {
-                container.innerHTML = `<img src="${qrImage}" alt="Entrance QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
-            } else if (window.QRCode) {
+            
+            const img = document.createElement('img');
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+            img.alt = 'Entrance Check-In QR Code';
+            img.style.width = '260px';
+            img.style.height = '260px';
+            img.style.borderRadius = '12px';
+            img.style.display = 'block';
+            img.style.margin = '0 auto';
+            img.style.boxShadow = '0 4px 14px rgba(0,0,0,0.12)';
+            
+            container.appendChild(img);
+
+            // Canvas fallback if image loading is blocked by browser shields
+            if (window.QRCode) {
                 try {
-                    new QRCode(container, {
+                    const canvasDiv = document.createElement('div');
+                    canvasDiv.style.display = 'none';
+                    new QRCode(canvasDiv, {
                         text: scanUrl,
                         width: 260,
                         height: 260,
@@ -586,13 +596,14 @@ async function loadAdminQRToken(forceRotate = false) {
                         colorLight: '#ffffff',
                         correctLevel: QRCode.CorrectLevel.M,
                     });
+                    img.onerror = () => {
+                        container.innerHTML = '';
+                        canvasDiv.style.display = 'block';
+                        container.appendChild(canvasDiv);
+                    };
                 } catch (e) {
-                    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-                    container.innerHTML = `<img src="${fallbackUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
+                    console.warn('Canvas fallback note:', e);
                 }
-            } else {
-                const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-                container.innerHTML = `<img src="${fallbackUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
             }
         }
 
