@@ -530,7 +530,7 @@ async function loadAdminQRToken(forceRotate = false) {
             }
         }
 
-        // 3. Generate new 12-char hex token if needed
+        // 3. Generate new 12-char hex token if needed or requested
         if (!token) {
             const rawBytes = new Uint8Array(6);
             window.crypto.getRandomValues(rawBytes);
@@ -541,11 +541,12 @@ async function loadAdminQRToken(forceRotate = false) {
 
             if (supabase) {
                 try {
-                    // Wipe all old token rows first so database maintains max 1 row
-                    await supabase.from('qr_tokens').delete().neq('token', 'dummy_keep');
+                    // Delete ALL old token rows first so table ALWAYS maintains max 1 row
+                    await supabase.from('qr_tokens').delete().neq('token', 'dummy_never_matches');
                     
-                    // Insert active token row
+                    // Insert active token row with fixed ID
                     await supabase.from('qr_tokens').insert([{
+                        id: '00000000-0000-0000-0000-000000000001',
                         token: token,
                         created_at: new Date().toISOString(),
                         expires_at: expiresAtIso,

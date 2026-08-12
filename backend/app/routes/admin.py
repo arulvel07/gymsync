@@ -97,15 +97,16 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
 
     _CURRENT_QR_TOKEN = token_data
 
-    # Wipe old token rows so table maintains exactly 1 row
+    # Wipe ALL old token rows first so table ALWAYS maintains exactly 1 row
     try:
-        db.table("qr_tokens").delete().neq("token", "dummy_keep").execute()
+        db.table("qr_tokens").delete().neq("token", "dummy_never_matches").execute()
     except Exception as e:
         print(f"Supabase qr_tokens delete note: {e}")
 
-    # Insert single active token row
+    # Insert single active token row with fixed ID
     try:
         db.table("qr_tokens").insert({
+            "id": "00000000-0000-0000-0000-000000000001",
             "token": token,
             "created_at": created_at,
             "expires_at": expires_at,
