@@ -21,8 +21,8 @@ VALID_WORKOUT_TYPES = [
 ]
 
 
-# Max session duration before auto-checkout (set to 1 minute for testing, change to 120 for 2 hours)
-MAX_SESSION_MINUTES = 1
+# Max session duration before auto-checkout (set to 120 minutes / 2 hours)
+MAX_SESSION_MINUTES = 120
 
 
 def auto_checkout_expired_sessions(db):
