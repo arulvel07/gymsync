@@ -1,6 +1,6 @@
 /**
  * Admin Dashboard Logic
- * Analytics charts, attendance management, gym config, CSV export
+ * Executive command center, analytics charts, attendance management, gym config, CSV export
  */
 
 let currentAdminSection = 'overview';
@@ -21,7 +21,7 @@ async function initAdmin() {
             window.location.href = 'dashboard.html';
             return;
         }
-        document.getElementById('admin-name').textContent = profile.full_name;
+        document.getElementById('admin-name').textContent = profile.full_name || profile.roll_number || 'Administrator';
     } catch (err) {
         showToast('Failed to verify admin access', 'error');
         window.location.href = 'dashboard.html';
@@ -39,34 +39,37 @@ async function initAdmin() {
         loadGymConfig(),
     ]);
 
-    // Setup sidebar navigation
+    // Setup sidebar & mobile navigation
     setupSidebarNav();
 
     // Setup event listeners
     document.getElementById('config-form')?.addEventListener('submit', handleUpdateConfig);
     document.getElementById('export-csv-btn')?.addEventListener('click', handleExportCSV);
     document.getElementById('attendance-search')?.addEventListener('input', debounce(handleAttendanceSearch, 300));
+    document.getElementById('date-from')?.addEventListener('change', () => loadAttendanceLog());
+    document.getElementById('date-to')?.addEventListener('change', () => loadAttendanceLog());
     document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
 
     // Auto-refresh every 60 seconds
     setInterval(() => {
         loadAdminSummary();
         loadAdminOccupancy();
+        if (currentAdminSection === 'overview' || currentAdminSection === 'attendance') {
+            loadAttendanceLog();
+        }
     }, 60000);
 }
 
 
-// ── Sidebar Navigation ─────────────────────────────────────
+// ── Sidebar & Navigation ───────────────────────────────────
 
 function setupSidebarNav() {
-    const links = document.querySelectorAll('.sidebar-link[data-section]');
-    links.forEach(link => {
+    const allLinks = document.querySelectorAll('.sidebar-link[data-section], .admin-mobile-link[data-section]');
+    allLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const section = link.dataset.section;
             showSection(section);
-            links.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
         });
     });
 }
@@ -76,11 +79,22 @@ function showSection(section) {
     sections.forEach(s => {
         s.style.display = s.id === `section-${section}` ? 'block' : 'none';
     });
+
+    const allLinks = document.querySelectorAll('.sidebar-link[data-section], .admin-mobile-link[data-section]');
+    allLinks.forEach(l => {
+        if (l.dataset.section === section) {
+            l.classList.add('active');
+        } else {
+            l.classList.remove('active');
+        }
+    });
+
     currentAdminSection = section;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
-// ── Summary Cards ──────────────────────────────────────────
+// ── Summary Cards & Telemetry ──────────────────────────────
 
 async function loadAdminSummary() {
     try {
@@ -100,11 +114,47 @@ async function loadAdminOccupancy() {
     try {
         const data = await publicApiRequest('/api/occupancy');
         const level = getOccupancyLevel(data.percentage);
-        document.getElementById('admin-occupancy-count').textContent = data.current_count;
-        document.getElementById('admin-occupancy-max').textContent = `/ ${data.max_capacity}`;
+
+        const countEl = document.getElementById('admin-occupancy-count');
+        if (countEl) {
+            countEl.textContent = data.current_count;
+            countEl.style.color = level.color;
+        }
+
+        const maxEl = document.getElementById('admin-occupancy-max');
+        if (maxEl) maxEl.textContent = `/ ${data.max_capacity} Max Capacity`;
+
         const pctEl = document.getElementById('admin-occupancy-pct');
-        pctEl.textContent = `${data.percentage}%`;
-        pctEl.style.color = level.color;
+        if (pctEl) {
+            pctEl.textContent = `${data.percentage}%`;
+            pctEl.style.color = level.color;
+        }
+
+        const barEl = document.getElementById('admin-occupancy-bar');
+        if (barEl) {
+            barEl.style.width = `${Math.min(100, data.percentage)}%`;
+            barEl.style.background = level.color;
+        }
+
+        const labelEl = document.getElementById('admin-capacity-label');
+        if (labelEl) {
+            labelEl.textContent = data.is_open ? level.label : 'Gym Closed';
+            labelEl.style.color = level.color;
+        }
+
+        const badgeEl = document.getElementById('admin-status-badge');
+        if (badgeEl) {
+            if (!data.is_open) {
+                badgeEl.className = 'badge badge-red';
+                badgeEl.textContent = '● Facility Closed';
+            } else if (data.percentage >= 90) {
+                badgeEl.className = 'badge badge-red';
+                badgeEl.textContent = '● Almost Full';
+            } else {
+                badgeEl.className = 'badge badge-green';
+                badgeEl.textContent = '● Operational';
+            }
+        }
     } catch (err) {
         console.error('Failed to load occupancy:', err);
     }
@@ -115,7 +165,7 @@ async function loadAdminOccupancy() {
 
 async function loadAttendanceLog(search = '') {
     const tbody = document.getElementById('attendance-tbody');
-    if (!tbody) return;
+    const overviewTbody = document.getElementById('overview-attendance-tbody');
 
     try {
         let url = '/api/admin/all-sessions?limit=50';
@@ -128,22 +178,41 @@ async function loadAttendanceLog(search = '') {
 
         const sessions = await apiRequest(url);
 
-        if (!sessions.length) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No sessions found</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = sessions.map(s => `
+        const rowHtml = (s) => `
             <tr>
-                <td style="color: var(--text-primary); font-weight: 500;">${s.full_name || '—'}</td>
-                <td><span class="stat-number" style="font-size: 0.85rem;">${s.roll_number || '—'}</span></td>
+                <td style="color: var(--text-primary); font-weight: 600;">${s.full_name || 'Student'}</td>
+                <td><span class="stat-number" style="font-size: 0.85rem; color: var(--accent-blue);">${s.roll_number || '—'}</span></td>
                 <td>${formatDate(s.check_in)}</td>
                 <td>${formatTime(s.check_in)}</td>
-                <td>${s.check_out ? formatTime(s.check_out) : '<span class="badge badge-green">Active</span>'}</td>
+                <td>${s.check_out ? formatTime(s.check_out) : '<span class="badge badge-green">● Active</span>'}</td>
                 <td><span style="color: ${getWorkoutColor(s.workout_type)}">${getWorkoutIcon(s.workout_type)} ${s.workout_type}</span></td>
                 <td class="stat-number">${s.duration_minutes ? formatDuration(s.duration_minutes) : '—'}</td>
             </tr>
-        `).join('');
+        `;
+
+        if (!sessions.length) {
+            const emptyHtml = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No session records found</td></tr>`;
+            if (tbody) tbody.innerHTML = emptyHtml;
+            if (overviewTbody) overviewTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No recent sessions recorded today</td></tr>`;
+            return;
+        }
+
+        if (tbody) {
+            tbody.innerHTML = sessions.map(rowHtml).join('');
+        }
+
+        if (overviewTbody) {
+            overviewTbody.innerHTML = sessions.slice(0, 5).map(s => `
+                <tr>
+                    <td style="color: var(--text-primary); font-weight: 600;">${s.full_name || 'Student'}</td>
+                    <td><span class="stat-number" style="font-size: 0.85rem; color: var(--accent-blue);">${s.roll_number || '—'}</span></td>
+                    <td>${formatTime(s.check_in)}</td>
+                    <td>${s.check_out ? formatTime(s.check_out) : '<span class="badge badge-green">● Active</span>'}</td>
+                    <td><span style="color: ${getWorkoutColor(s.workout_type)}">${getWorkoutIcon(s.workout_type)} ${s.workout_type}</span></td>
+                    <td class="stat-number">${s.duration_minutes ? formatDuration(s.duration_minutes) : '—'}</td>
+                </tr>
+            `).join('');
+        }
     } catch (err) {
         console.error('Failed to load attendance log:', err);
     }
@@ -175,11 +244,11 @@ async function loadDailyChart() {
                     label: 'Daily Visitors',
                     data: data.map(d => d.count),
                     borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 0,
+                    pointRadius: 2,
                     pointHoverRadius: 6,
                     pointHoverBackgroundColor: '#3b82f6',
                     pointHoverBorderColor: '#fff',
@@ -212,7 +281,7 @@ async function loadHourlyChart() {
                     backgroundColor: gymHours.map(h => {
                         const maxVal = Math.max(...gymHours.map(x => x.avg_visitors)) || 1;
                         const level = getOccupancyLevel((h.avg_visitors / maxVal) * 100);
-                        return level.color + '80';
+                        return level.color + '90';
                     }),
                     borderColor: gymHours.map(h => {
                         const maxVal = Math.max(...gymHours.map(x => x.avg_visitors)) || 1;
@@ -284,10 +353,10 @@ function getChartOptions(yLabel) {
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
                 titleColor: '#f1f5f9',
                 bodyColor: '#94a3b8',
-                borderColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: 'rgba(59, 130, 246, 0.3)',
                 borderWidth: 1,
                 cornerRadius: 8,
                 padding: 12,
@@ -297,18 +366,18 @@ function getChartOptions(yLabel) {
         },
         scales: {
             x: {
-                grid: { color: 'rgba(148, 163, 184, 0.05)' },
+                grid: { color: 'rgba(148, 163, 184, 0.06)' },
                 ticks: { color: '#64748b', font: { family: 'Inter', size: 11 }, maxRotation: 45 },
             },
             y: {
-                grid: { color: 'rgba(148, 163, 184, 0.05)' },
+                grid: { color: 'rgba(148, 163, 184, 0.06)' },
                 ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } },
                 beginAtZero: true,
                 title: {
                     display: true,
                     text: yLabel,
                     color: '#64748b',
-                    font: { family: 'Inter', size: 12 },
+                    font: { family: 'Inter', size: 11 },
                 },
             },
         },
@@ -349,6 +418,7 @@ async function handleUpdateConfig(e) {
         });
 
         showToast('Gym configuration updated', 'success');
+        loadAdminOccupancy();
     } catch (err) {
         showToast(err.message || 'Failed to update config', 'error');
     } finally {
@@ -371,14 +441,14 @@ async function handleExportCSV() {
             'Duration (min)': s.duration_minutes || '',
         }));
         exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
-        showToast('CSV exported successfully', 'success');
+        showToast('CSV report exported successfully', 'success');
     } catch (err) {
         showToast('Failed to export CSV', 'error');
     }
 }
 
 
-// ── Utility ────────────────────────────────────────────────
+// ── Utility Helpers ────────────────────────────────────────
 
 function debounce(fn, delay) {
     let timer;
@@ -387,3 +457,8 @@ function debounce(fn, delay) {
         timer = setTimeout(() => fn.apply(this, args), delay);
     };
 }
+
+window.showSection = showSection;
+window.loadAdminSummary = loadAdminSummary;
+window.loadAdminOccupancy = loadAdminOccupancy;
+window.handleExportCSV = handleExportCSV;
