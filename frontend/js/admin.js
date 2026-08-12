@@ -533,16 +533,21 @@ async function loadAdminQRToken(forceRotate = false) {
         // 3. ALWAYS update Supabase table directly via client JS so DB ALWAYS matches Admin UI!
         if (supabase) {
             try {
-                // Delete ALL old rows first so database ALWAYS maintains max 1 row
-                await supabase.from('qr_tokens').delete().neq('token', 'dummy_never_matches');
-                
-                // Insert active token row with fixed ID
-                await supabase.from('qr_tokens').insert([{
+                const { error: upsertErr } = await supabase.from('qr_tokens').upsert([{
                     id: '00000000-0000-0000-0000-000000000001',
                     token: token,
                     created_at: new Date().toISOString(),
                     expires_at: expiresAtIso,
                 }]);
+
+                if (upsertErr) {
+                    // Fallback update if primary key upsert blocked
+                    await supabase.from('qr_tokens').update({
+                        token: token,
+                        created_at: new Date().toISOString(),
+                        expires_at: expiresAtIso,
+                    }).neq('token', 'dummy_never_matches');
+                }
             } catch (dbErr) {
                 console.warn('Supabase token sync exception:', dbErr);
             }
