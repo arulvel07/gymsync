@@ -475,7 +475,7 @@ async function handleCheckOut() {
 // ── Session History ────────────────────────────────────────
 
 async function loadSessionHistory() {
-    const container = document.getElementById('session-history-body');
+    const container = document.getElementById('history-tbody');
     if (!container) return;
 
     try {
