@@ -68,7 +68,7 @@ async function loadProfile() {
         const welcomeEl = document.getElementById('welcome-heading');
 
         const fullName = profile.full_name || 'Student';
-        if (nameEl) nameEl.textContent = `Hi, ${fullName}`;
+        if (nameEl) nameEl.textContent = fullName;
         if (welcomeEl) welcomeEl.textContent = `Hi, ${fullName} 👋`;
 
         if (roleEl) {
@@ -497,6 +497,7 @@ async function loadSessionHistory() {
         `).join('');
     } catch (err) {
         console.error('Failed to load session history:', err);
+        container.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No attendance records found</td></tr>`;
     }
 }
 
