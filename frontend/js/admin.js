@@ -492,68 +492,59 @@ async function loadAdminQRToken(forceRotate = false) {
 
         const supabase = window.SUPABASE_CLIENT;
 
-        // 1. Try fetching Python QR code image & active token from Python backend API
-        try {
-            const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
-            const method = forceRotate ? 'POST' : 'GET';
-            const apiData = await apiRequest(endpoint, { method });
-            if (apiData && apiData.token) {
-                token = apiData.token;
-                expiresAtIso = apiData.expires_at;
-                qrImage = apiData.qr_image;
-            }
-        } catch (e) {
-            console.warn('Backend Python QR API note:', e);
-        }
+        // 1. If forceRotate (button clicked or expired), generate brand new token
+        if (forceRotate) {
+            const rawBytes = new Uint8Array(6);
+            window.crypto.getRandomValues(rawBytes);
+            token = Array.from(rawBytes, b => b.toString(16).padStart(2, '0')).join('');
+            expiresAtIso = new Date(Date.now() + 7 * 60 * 1000).toISOString();
+        } else {
+            // Try querying active token directly from Supabase table
+            if (supabase) {
+                try {
+                    const { data: dbTokens } = await supabase
+                        .from('qr_tokens')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(1);
 
-        // 2. If API unreachable, query Supabase directly for latest active token
-        if (!token && !forceRotate && supabase) {
-            try {
-                const { data: dbTokens, error: selErr } = await supabase
-                    .from('qr_tokens')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-
-                if (selErr) console.warn('Supabase select note:', selErr);
-
-                if (dbTokens && dbTokens.length > 0) {
-                    const latest = dbTokens[0];
-                    const expTime = parseUTC(latest.expires_at).getTime();
-                    if (expTime - Date.now() > 5000) {
-                        token = latest.token;
-                        expiresAtIso = latest.expires_at;
+                    if (dbTokens && dbTokens.length > 0) {
+                        const latest = dbTokens[0];
+                        const expTime = parseUTC(latest.expires_at).getTime();
+                        if (expTime - Date.now() > 5000) {
+                            token = latest.token;
+                            expiresAtIso = latest.expires_at;
+                        }
                     }
+                } catch (e) {
+                    console.warn('Supabase token query note:', e);
                 }
-            } catch (e) {
-                console.warn('Supabase token query note:', e);
             }
         }
 
-        // 3. Generate new 12-char hex token if needed or requested
+        // 2. Generate new 12-char hex token if no valid active token
         if (!token) {
             const rawBytes = new Uint8Array(6);
             window.crypto.getRandomValues(rawBytes);
             token = Array.from(rawBytes, b => b.toString(16).padStart(2, '0')).join('');
-            
-            const expiresDate = new Date(Date.now() + 7 * 60 * 1000);
-            expiresAtIso = expiresDate.toISOString();
+            expiresAtIso = new Date(Date.now() + 7 * 60 * 1000).toISOString();
+        }
 
-            if (supabase) {
-                try {
-                    // Delete ALL old token rows first so table ALWAYS maintains max 1 row
-                    await supabase.from('qr_tokens').delete().neq('token', 'dummy_never_matches');
-                    
-                    // Insert active token row with fixed ID
-                    await supabase.from('qr_tokens').insert([{
-                        id: '00000000-0000-0000-0000-000000000001',
-                        token: token,
-                        created_at: new Date().toISOString(),
-                        expires_at: expiresAtIso,
-                    }]);
-                } catch (dbErr) {
-                    console.warn('Supabase token update exception:', dbErr);
-                }
+        // 3. ALWAYS update Supabase table directly via client JS so DB ALWAYS matches Admin UI!
+        if (supabase) {
+            try {
+                // Delete ALL old rows first so database ALWAYS maintains max 1 row
+                await supabase.from('qr_tokens').delete().neq('token', 'dummy_never_matches');
+                
+                // Insert active token row with fixed ID
+                await supabase.from('qr_tokens').insert([{
+                    id: '00000000-0000-0000-0000-000000000001',
+                    token: token,
+                    created_at: new Date().toISOString(),
+                    expires_at: expiresAtIso,
+                }]);
+            } catch (dbErr) {
+                console.warn('Supabase token sync exception:', dbErr);
             }
         }
 
