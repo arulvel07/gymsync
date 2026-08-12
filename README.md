@@ -1,6 +1,6 @@
 # 🏋️ GymSync — Smart Campus Gym Management System
 
-> A full-stack web application for **IIITDM Kancheepuram** that provides real-time gym occupancy tracking, digital check-in/check-out attendance, workout analytics, crowd forecasting, and an admin management dashboard.
+> A full-stack web application for **IIITDM Kancheepuram** that provides real-time gym occupancy tracking, **QR-based digital check-in/check-out**, workout analytics, crowd forecasting, **automated operating hours enforcement**, **anti-screenshot QR exploit prevention**, and an admin command center.
 
 ---
 
@@ -23,6 +23,8 @@
   - [Frontend on Vercel](#frontend-on-vercel)
 - [Environment Variables](#-environment-variables)
 - [Authentication Flow](#-authentication-flow)
+- [Security Features](#-security-features)
+- [Automation & Smart Features](#-automation--smart-features)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -37,13 +39,15 @@
 - Students have no way to know if the gym is full before walking there.
 - Admins have no attendance data, usage analytics, or capacity enforcement.
 - There's no historical data to identify peak hours or plan facility improvements.
+- Manual attendance registers are easily faked — anyone can write any name.
 
 ### The Solution
 
 GymSync provides:
 - A **public landing page** showing live occupancy (no login needed).
-- A **student dashboard** for digital check-in/check-out, session history, analytics, workout planning, and crowd forecasting.
-- An **admin panel** for user management, session logs, gym configuration (capacity, open/close hours), and monthly reports.
+- A **student dashboard** for QR-based digital check-in/check-out, session history, analytics, workout planning, and crowd forecasting.
+- An **admin command center** with a real-time rotating QR entrance display, user management, session logs, gym configuration (capacity, open/close hours), and monthly reports.
+- **Fully automated** operating hours enforcement, idle session timeouts, and anti-screenshot QR exploit prevention.
 
 ---
 
@@ -53,43 +57,87 @@ GymSync provides:
 | Feature | Description |
 |---------|-------------|
 | **Live Occupancy Ring** | Animated SVG ring showing current headcount vs. max capacity |
-| **Gym Open/Closed Status** | Real-time open/closed badge |
+| **Gym Open/Closed Status** | Real-time open/closed badge based on operating hours and admin toggle |
 | **Workout Focus Split** | Bar chart showing what workouts active users are doing (e.g., Push, Pull, Legs) |
 | **Auto-Refresh** | Occupancy data refreshes every 30 seconds |
 
 ### 🎓 Student Dashboard (Authenticated)
 | Feature | Description |
 |---------|-------------|
-| **Digital Check-In** | Select a workout type and check into the gym with one click |
+| **QR-Based Check-In** | Scan the entrance QR code using your phone camera to check in with a selected workout type |
+| **Manual OTP Fallback** | Alternatively type the 12-character OTP token displayed on the entrance screen |
 | **Auto Check-Out** | Check out from your active session; duration is automatically calculated |
+| **2-Hour Idle Auto-Checkout** | Sessions exceeding 2 hours are automatically checked out (both frontend timer + backend enforcement) |
+| **Gym Closed Detection** | Check-in button shows a toast alert explaining why the gym is closed (admin toggle OR outside operating hours) |
 | **Duplicate Prevention** | Cannot check in twice — must check out of active session first |
 | **Capacity Enforcement** | Check-in is blocked if the gym is at full capacity |
-| **Session History** | Paginated list of your past gym sessions with timestamps and duration |
-| **Analytics Dashboard** | Charts for peak hours, daily stats, workout distribution (last 30/60/90 days) |
+| **Personal Attendance Logs** | Paginated table of your past gym sessions with date, check-in/out times, workout focus, and duration |
+| **Peak Hours Heatmap** | Visual heatmap showing average visitors per hour over the last 30 days |
 | **Workout Planner** | Pre-plan workouts for specific dates with workout type and time slot |
 | **Weekly Templates** | Set recurring weekly workout schedules (e.g., "Push on Monday at 5 PM") |
 | **Crowd Forecast** | Predict gym crowd for a future date/hour based on planned workouts + historical data |
 | **Profile** | View your roll number, name, and role |
 
-### 🔐 Admin Panel (Admin Role Only)
+### 🔐 Admin Command Center (Admin Role Only)
 | Feature | Description |
 |---------|-------------|
+| **Real-Time Entrance QR Display** | Auto-rotating QR code displayed on the gym entrance screen for students to scan |
+| **Instant QR Rotation** | Manual "Rotate QR" button to immediately invalidate old screenshots and generate a fresh code |
+| **QR Screenshot Exploit Prevention** | Every new QR generation instantly voids ALL previous QR screenshots — only the latest code works |
+| **Facility Closed Lock** | QR generation is automatically suspended when the gym is closed (admin toggle or outside hours) |
 | **User Management** | View all registered users, search by name or roll number |
 | **All Sessions** | Browse every gym session with date filters and search |
 | **Gym Configuration** | Set max capacity, open/close times, toggle gym open/closed |
 | **Monthly Reports** | Generate reports with total visits, unique users, avg duration, daily & workout breakdowns |
+| **CSV Export** | Export attendance data to CSV for offline analysis |
+
+---
+
+## 🤖 Automation & Smart Features
+
+### ⏰ Operating Hours Enforcement
+The gym automatically opens and closes based on the configured operating hours in `gym_config` (e.g., `06:00` - `22:00` IST). This works **irrespective** of whether the admin is logged in or not:
+
+| Scenario | Behavior |
+|----------|----------|
+| **Before `open_time`** | Gym is closed. Check-in blocked. QR generation suspended. |
+| **After `close_time`** | Gym auto-closes. All active sessions are force-checked-out. QR suspended. |
+| **During hours + Admin toggles OFF** | Gym closes. Toast shows: "Gym is currently closed by administration." |
+| **During hours + Admin toggles ON** | Normal operation. QR codes rotate. Check-ins allowed. |
+
+### ⏱ 2-Hour Idle Session Auto-Checkout
+Students who forget to check out are automatically checked out after **2 hours** (120 minutes):
+
+- **Frontend**: The session timer in `dashboard.js` detects when `elapsedMinutes >= 120` and triggers `handleCheckOut()` automatically with a toast notification.
+- **Backend**: The `/api/occupancy` endpoint calls `auto_checkout_expired_sessions()` on every request, scanning all active sessions and closing any that exceed 120 minutes.
+
+### 📱 Single-Click Google OAuth Login
+When a student clicks "Login" and completes Google OAuth:
+1. Google redirects back to the app with token hash parameters.
+2. `index.html` has an `onAuthStateChange` listener that **instantly detects** the new session.
+3. The student is redirected to `dashboard.html` on the **very first click** — no double-click required.
+4. `auth.js` on `login.html` also has its own `onAuthStateChange` listener as a safety net.
+
+### 🔒 Anti-Screenshot QR Exploit Prevention
+The QR token validation system is designed to prevent students from screenshotting the entrance QR and sharing it:
+
+1. **Single Active Token**: The backend queries only the **single latest row** from `qr_tokens` (`ORDER BY created_at DESC LIMIT 1`).
+2. **Strict Match**: The scanned token must **exactly match** the latest active token. Any older screenshot is instantly invalid.
+3. **Instant Invalidation**: Every time the admin rotates the QR (manually or auto-rotation), all previous QR codes become useless.
+4. **Token Persistence**: If the admin screen goes offline, the last generated token stays valid in Supabase so students aren't locked out.
 
 ---
 
 ## 🛠 Tech Stack
 
 | Layer | Technology | Purpose |
-|-------|-----------|---------|
+|-------|-----------|---------| 
 | **Frontend** | HTML, CSS, JavaScript (Vanilla) | UI pages — landing, login, dashboard, admin |
 | **CSS Framework** | Tailwind CSS v4 (CDN) + Custom CSS | Styling, glassmorphism cards, animations |
 | **Backend** | Python 3.11 + FastAPI | REST API server |
 | **Database** | Supabase (PostgreSQL) | Data storage, Row Level Security, Auth |
-| **Authentication** | Supabase Auth (OAuth — Google) | Student login via institutional email |
+| **Authentication** | Supabase Auth (OAuth — Google) | Login via institutional email (`@iiitdm.ac.in`) |
+| **QR Generation** | QRCode.js (Admin) + Html5-QRCode (Student Scanner) | Entrance display QR + Phone camera scanner |
 | **Validation** | Pydantic v2 + pydantic-settings | Request/response validation, env config |
 | **HTTP Client** | httpx | Async HTTP for inter-service calls |
 | **Backend Hosting** | Render (Free tier) | Docker-based Python deployment |
@@ -105,10 +153,16 @@ GymSync provides:
 │                    USERS (Browser)                       │
 │                                                         │
 │  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │ Landing  │  │  Dashboard   │  │   Admin Panel     │  │
-│  │ (Public) │  │  (Student)   │  │   (Admin Only)    │  │
+│  │ Landing  │  │  Dashboard   │  │  Admin Command    │  │
+│  │ (Public) │  │  (Student)   │  │  Center (Admin)   │  │
 │  └────┬─────┘  └──────┬───────┘  └────────┬──────────┘  │
 │       │               │                   │              │
+│       │          ┌─────┴──────┐            │              │
+│       │          │ QR Scanner │            │              │
+│       │          │ (Camera)   │     ┌──────┴──────┐      │
+│       │          └────────────┘     │ QR Display  │      │
+│       │                             │ (Entrance)  │      │
+│       │                             └─────────────┘      │
 └───────┼───────────────┼───────────────────┼──────────────┘
         │               │                   │
         ▼               ▼                   ▼
@@ -120,11 +174,16 @@ GymSync provides:
 │  │   Router    │ │   Router   │ │  Router  │ │ Router │ │
 │  └──────┬──────┘ └─────┬──────┘ └────┬─────┘ └───┬────┘ │
 │         │              │             │            │      │
-│         ▼              ▼             ▼            ▼      │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │        Auth Middleware (JWT Validation)           │    │
-│  │     get_current_user() / require_admin()          │    │
-│  └──────────────────────┬───────────────────────────┘    │
+│  ┌──────┴──────────────┴─────────────┴────────────┴──┐   │
+│  │  Auto-Checkout Engine (Expired + Closing Time)    │   │
+│  │  QR Token Validator (Anti-Screenshot Strict)      │   │
+│  │  Facility Status Checker (IST Operating Hours)    │   │
+│  └───────────────────┬───────────────────────────────┘   │
+│                      │                                   │
+│  ┌───────────────────┴───────────────────────────────┐   │
+│  │        Auth Middleware (JWT Validation)            │   │
+│  │     get_current_user() / require_admin()          │   │
+│  └──────────────────────┬────────────────────────────┘   │
 │                         │                                │
 └─────────────────────────┼────────────────────────────────┘
                           │
@@ -137,15 +196,19 @@ GymSync provides:
 │  │ (Google  │  │  Database    │  │  Security (RLS)   │   │
 │  │  OAuth)  │  │              │  │                   │   │
 │  └──────────┘  └──────────────┘  └───────────────────┘   │
+│                                                          │
+│  Tables: profiles, gym_sessions, gym_config,             │
+│          workout_plans, workout_templates, qr_tokens     │
 └──────────────────────────────────────────────────────────┘
 ```
 
 ### Data Flow
 
-1. **Public Occupancy**: Landing page → `GET /api/occupancy` (no auth) → Supabase query → response
-2. **Student Check-In**: Dashboard → `POST /api/check-in` (JWT required) → validates capacity → inserts session → response
-3. **Admin Config**: Admin panel → `PUT /api/admin/config` (admin JWT required) → updates `gym_config` → response
-4. **Crowd Forecast**: Dashboard → `GET /api/planner/crowd-forecast?date=...&hour=...` → combines planned workouts + historical data → predicted count
+1. **Public Occupancy**: Landing page → `GET /api/occupancy` (no auth) → auto-checkout expired sessions → Supabase query → response
+2. **QR Check-In**: Admin entrance display generates QR → Student scans with phone camera → `POST /api/check-in` (JWT + QR token) → validates against latest `qr_tokens` row → inserts session → response
+3. **Auto-Checkout at Close**: Any API call triggers `check_facility_open_status()` → if outside hours → `auto_checkout_all_active_sessions()` → force-closes all active sessions
+4. **Admin Config**: Admin panel → `PUT /api/admin/config` (admin JWT required) → updates `gym_config` → response
+5. **Crowd Forecast**: Dashboard → `GET /api/planner/crowd-forecast?date=...&hour=...` → combines planned workouts + historical data → predicted count
 
 ---
 
@@ -164,9 +227,9 @@ campus-gym/
 │   │   ├── models.py                 # Pydantic request/response models
 │   │   └── routes/
 │   │       ├── __init__.py
-│   │       ├── attendance.py         # Check-in, check-out, occupancy, session history, profile
+│   │       ├── attendance.py         # Check-in, check-out, occupancy, QR validation, auto-checkout
 │   │       ├── analytics.py          # Peak hours, daily stats, workout distribution, summary
-│   │       ├── admin.py              # User management, all sessions, config, monthly reports
+│   │       ├── admin.py              # User management, all sessions, config, monthly reports, QR tokens
 │   │       └── planner.py            # Workout plans, weekly templates, crowd forecasting
 │   │
 │   ├── .env.example                  # Template for environment variables
@@ -175,18 +238,18 @@ campus-gym/
 │   └── render.yaml                   # Render deployment configuration
 │
 ├── frontend/                         # Static HTML/CSS/JS frontend
-│   ├── index.html                    # Public landing page with live occupancy widget
-│   ├── login.html                    # Student login page (Supabase Google OAuth)
-│   ├── dashboard.html                # Student dashboard (check-in, analytics, planner)
-│   ├── admin.html                    # Admin management panel
+│   ├── index.html                    # Public landing page with live occupancy + OAuth auto-redirect
+│   ├── login.html                    # Login page (Supabase Google OAuth)
+│   ├── dashboard.html                # Student dashboard (QR check-in, analytics, planner)
+│   ├── admin.html                    # Admin command center (QR display, config, reports)
 │   ├── css/
 │   │   └── styles.css                # Custom CSS (dark theme, glassmorphism, animations)
 │   ├── js/
 │   │   ├── supabase-config.js        # Supabase client init + OAuth state listener
-│   │   ├── auth.js                   # Login/logout handlers, auth state management
-│   │   ├── utils.js                  # Shared utilities (API calls, formatters, colors)
-│   │   ├── dashboard.js              # Dashboard logic (check-in/out, charts, planner)
-│   │   └── admin.js                  # Admin panel logic (users, sessions, config, reports)
+│   │   ├── auth.js                   # Login/logout, Google OAuth, onAuthStateChange listener
+│   │   ├── utils.js                  # Shared utilities (API calls, parseUTC, formatters, colors)
+│   │   ├── dashboard.js              # Dashboard logic (QR scanner, check-in/out, timer, planner)
+│   │   └── admin.js                  # Admin logic (QR generation, users, sessions, config, reports)
 │   └── vercel.json                   # Vercel routing configuration
 │
 ├── supabase/
@@ -211,8 +274,8 @@ Extends Supabase `auth.users` with gym-specific fields. Auto-populated on user s
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | `UUID` (PK, FK → `auth.users`) | User's unique ID from Supabase Auth |
-| `full_name` | `TEXT` | Student's name |
-| `roll_number` | `TEXT` (UNIQUE) | Roll number extracted from email (e.g., `CS22B1001`) |
+| `full_name` | `TEXT` | Student's name (auto-extracted from email prefix, e.g., `CS24I1027`) |
+| `roll_number` | `TEXT` (UNIQUE) | Roll number extracted from email |
 | `role` | `TEXT` | `'student'` or `'admin'` |
 | `created_at` | `TIMESTAMPTZ` | Account creation timestamp |
 
@@ -225,7 +288,7 @@ Tracks every gym visit — one row per check-in.
 | `user_id` | `UUID` (FK → `profiles`) | Who checked in |
 | `check_in` | `TIMESTAMPTZ` | When the student checked in |
 | `check_out` | `TIMESTAMPTZ` (nullable) | When they checked out (`NULL` = currently active) |
-| `workout_type` | `TEXT` | e.g., Push, Pull, Legs, Cardio, Full Body, Core |
+| `workout_type` | `TEXT` | e.g., Push, Pull, Legs, Cardio, Full Body, Core, or custom |
 | `duration_minutes` | `INT` (nullable) | Auto-calculated on check-out |
 | `created_at` | `TIMESTAMPTZ` | Row creation timestamp |
 
@@ -235,9 +298,19 @@ Singleton table (only 1 row, `id = 1`) for admin-configurable settings.
 | Column | Type | Default | Description |
 |--------|------|---------|-------------|
 | `max_capacity` | `INT` | `50` | Maximum concurrent users allowed |
-| `open_time` | `TIME` | `06:00` | Daily opening time |
-| `close_time` | `TIME` | `22:00` | Daily closing time |
+| `open_time` | `TIME` | `06:00` | Daily opening time (IST) |
+| `close_time` | `TIME` | `22:00` | Daily closing time (IST) |
 | `is_open` | `BOOLEAN` | `true` | Manual open/close toggle |
+
+#### `qr_tokens`
+Stores the current active QR entrance token. Only the **latest row** is ever valid.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | `UUID` (PK) | Fixed UUID for upsert (`00000000-0000-0000-0000-000000000001`) |
+| `token` | `TEXT` | 12-character hex token (e.g., `8f92a7c1e43b`) |
+| `created_at` | `TIMESTAMPTZ` | When this token was generated |
+| `expires_at` | `TIMESTAMPTZ` | When this token expires (7 minutes from creation) |
 
 #### `workout_plans`
 Pre-planned workouts for specific dates (one plan per user per date).
@@ -258,7 +331,7 @@ Recurring weekly templates (one template per user per day-of-week).
 |--------|------|-------------|
 | `id` | `UUID` (PK) | Template ID |
 | `user_id` | `UUID` (FK → `profiles`) | Student |
-| `day_of_week` | `INT` | 0 (Sunday) through 6 (Saturday) |
+| `day_of_week` | `INT` | 1 (Monday) through 7 (Sunday) |
 | `planned_time_slot` | `INT` | Hour of day (0–23), default `17` |
 | `workout_type` | `TEXT` | Planned workout type |
 
@@ -279,6 +352,7 @@ All tables have RLS enabled. Since the backend uses the **`service_role` key** (
 - `profiles` — Read/insert/update allowed for all authenticated users
 - `gym_sessions` — Read/insert/update allowed for all authenticated users
 - `gym_config` — Read allowed for everyone; update allowed for admins
+- `qr_tokens` — Full CRUD allowed for admins; read allowed for authenticated users
 - `workout_plans` & `workout_templates` — Full CRUD allowed for all authenticated users
 
 ---
@@ -300,24 +374,28 @@ Base URL: `https://gym-qxdu.onrender.com`
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `GET` | `/api/occupancy` | **None** (Public) | Current headcount, capacity, open/closed, workout distribution |
-| `POST` | `/api/check-in` | Bearer JWT | Check into the gym with a workout type |
+| `GET` | `/api/occupancy` | **None** (Public) | Current headcount, capacity, open/closed, workout distribution. Also triggers auto-checkout for expired sessions. |
+| `POST` | `/api/check-in` | Bearer JWT | Check into the gym with a workout type + QR token. Validates token against latest `qr_tokens` row. |
 | `POST` | `/api/check-out` | Bearer JWT | Check out of active session (auto-finds it) |
 | `GET` | `/api/active-session` | Bearer JWT | Check if the user has an active session |
 | `GET` | `/api/my-sessions` | Bearer JWT | Paginated session history (`?limit=20&offset=0`) |
 | `GET` | `/api/profile` | Bearer JWT | Get user's profile (name, roll number, role) |
+| `GET` | `/api/qr-tokens/validate` | **None** (Public) | Validate a QR token (`?token=8f92a7c1e43b`) |
 
 #### `POST /api/check-in` — Request Body
 ```json
 {
-  "workout_type": "Push"
+  "workout_type": "Push",
+  "qr_token": "8f92a7c1e43b"
 }
 ```
-Valid workout types: `Push`, `Pull`, `Legs`, `Upper Body`, `Lower Body`, `Cardio`, `Full Body`, `Core`
+Valid default workout types: `Push`, `Pull`, `Legs`, `Upper Body`, `Lower Body`, `Cardio`, `Full Body`, `Core`
+Custom workout types are also accepted (entered via "Others" option).
 
 #### Error Cases
 - `409 Conflict` — Already have an active session
 - `403 Forbidden` — Gym is closed or at full capacity
+- `400 Bad Request` — Invalid or stale QR token
 
 ### Analytics (`/api/analytics`)
 
@@ -410,11 +488,30 @@ All fields are optional — only provided fields are updated.
 4. Go to **Authentication** → **Providers** → enable **Google** OAuth.
    - You'll need a Google Cloud OAuth Client ID and Secret.
    - Set the redirect URL to your Supabase project's callback URL (shown in the Supabase dashboard).
+   - **Important**: In the Google Cloud Console, add your frontend URL (e.g., `https://gym-eta-pink-49.vercel.app`) as an authorized redirect URI.
 5. Collect your credentials from **Settings** → **API**:
    - `SUPABASE_URL` — Project URL
    - `SUPABASE_KEY` — `service_role` key (for the backend — **keep this secret!**)
    - `SUPABASE_ANON_KEY` — `anon` key (for the frontend — safe to expose)
    - `SUPABASE_JWT_SECRET` — JWT Secret
+
+#### Creating the `qr_tokens` Table
+
+If not already in your schema, run this in the Supabase SQL Editor:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.qr_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE public.qr_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all for authenticated" ON public.qr_tokens
+    FOR ALL USING (auth.role() = 'authenticated');
+```
 
 #### Making a User an Admin
 
@@ -423,7 +520,7 @@ To promote a student to admin, run this in the Supabase SQL Editor:
 ```sql
 UPDATE public.profiles
 SET role = 'admin'
-WHERE roll_number = 'CS22B1001';  -- Replace with the actual roll number
+WHERE roll_number = 'CS24I1027';  -- Replace with the actual roll number
 ```
 
 ### 2. Backend Setup
@@ -545,16 +642,17 @@ The frontend is configured via [`vercel.json`](vercel.json) at the project root.
 GymSync uses **Supabase Auth with Google OAuth** (PKCE flow):
 
 ```
-Student clicks "Login with Google"
+User clicks "Login"
         │
         ▼
 Supabase redirects to Google OAuth consent screen
+  (restricted to @iiitdm.ac.in via hd parameter)
         │
         ▼
-Student selects their institutional Google account
+User selects their institutional Google account
         │
         ▼
-Google redirects back to Supabase with an auth code
+Google redirects back to the app with auth code
         │
         ▼
 Supabase exchanges the code for tokens (PKCE)
@@ -564,12 +662,16 @@ Supabase creates/updates the user in auth.users
         │
         ▼
 Database trigger (handle_new_user) auto-creates a profiles row
-  ├── full_name = extracted from email or metadata
-  ├── roll_number = uppercase email prefix (e.g., CS22B1001)
+  ├── full_name = uppercase email prefix (e.g., CS24I1027)
+  ├── roll_number = same as full_name
   └── role = 'student' (default)
         │
         ▼
-Frontend receives the session (JWT access token)
+onAuthStateChange listener on index.html/login.html
+  detects SIGNED_IN event instantly
+        │
+        ▼
+Immediate redirect to dashboard.html (single click!)
         │
         ▼
 All authenticated API calls include:
@@ -580,6 +682,21 @@ Backend validates the JWT by calling supabase.auth.get_user(token)
   ├── Returns user ID and email
   └── For admin routes: checks profiles.role = 'admin'
 ```
+
+---
+
+## 🔒 Security Features
+
+| Feature | Implementation |
+|---------|---------------|
+| **QR Screenshot Prevention** | Only the single latest `qr_tokens` row is valid. Every rotation invalidates all older codes. |
+| **Institutional Email Lock** | Google OAuth `hd` parameter restricts login to `@iiitdm.ac.in` accounts only |
+| **JWT Token Validation** | Backend validates every request's `Authorization: Bearer` header via Supabase `auth.get_user()` |
+| **Admin Role Enforcement** | Admin endpoints use `require_admin()` dependency that checks `profiles.role = 'admin'` |
+| **Row Level Security** | All Supabase tables have RLS enabled as a defense-in-depth layer |
+| **CORS Protection** | Backend only accepts requests from the configured `FRONTEND_URL` origin |
+| **Security Headers** | Vercel config applies `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers |
+| **Service Role Key Isolation** | The `service_role` key is only used server-side (backend `.env`), never exposed in frontend code |
 
 ---
 
@@ -600,14 +717,14 @@ Backend validates the JWT by calling supabase.auth.get_user(token)
 
 ## 📄 License
 
-This project was built for **Campus sync hackathon** as a campus facility management solution.
+This project was built for **Campus Sync Hackathon** as a campus facility management solution.
 
 ---
 
 <div align="center">
 
-**Built with ❤️**
+**Built with ❤️ for IIITDM Kancheepuram**
 
-[Live Demo](https://gymsync.vercel.app) · [API Docs](https://gym-qxdu.onrender.com/docs) · [Report Bug](https://github.com/arulvel07/gymsync/issues)
+[Live Demo](https://gym-eta-pink-49.vercel.app) · [API Docs](https://gym-qxdu.onrender.com/docs) · [Report Bug](https://github.com/arulvel07/gymsync/issues)
 
 </div>
