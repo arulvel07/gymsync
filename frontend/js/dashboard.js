@@ -379,14 +379,13 @@ async function handleCheckIn() {
         workoutType = val;
     }
 
-    // Retrieve active entrance QR token scanned by student if already present
     const urlParams = new URLSearchParams(window.location.search);
-    const qrToken = urlParams.get('token') || sessionStorage.getItem('active_qr_token') || sessionStorage.getItem('pending_qr_token');
+    const urlToken = urlParams.get('token');
 
-    if (qrToken) {
-        executeQRCheckIn(qrToken, workoutType);
+    if (urlToken) {
+        executeQRCheckIn(urlToken, workoutType);
     } else {
-        // Open live camera scanner modal automatically on phone!
+        // Always open live camera scanner modal on phone for every check-in!
         openQRScannerModal(workoutType);
     }
 }
@@ -399,6 +398,11 @@ async function handleCheckOut() {
         const session = await apiRequest('/api/check-out', { method: 'POST' });
         clearInterval(timerInterval);
         activeSession = null;
+        
+        // Clear stored QR tokens on check-out so next check-in ALWAYS demands a new QR scan!
+        sessionStorage.removeItem('active_qr_token');
+        sessionStorage.removeItem('pending_qr_token');
+        
         showCheckinUI();
         showToast(`Checked out! Duration: ${formatDuration(session.duration_minutes)}`, 'success');
         loadOccupancy();
