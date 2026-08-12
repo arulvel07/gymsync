@@ -460,35 +460,92 @@ let qrExpiresAtMs = 0;
 
 async function loadAdminQRToken(forceRotate = false) {
     try {
-        const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
-        const method = forceRotate ? 'POST' : 'GET';
-        const data = await apiRequest(endpoint, { method });
+        let token = null;
+        let expiresAtIso = null;
 
-        if (!data || !data.token) return;
+        const supabase = window.SUPABASE_CLIENT;
+        const now = new Date();
+
+        // 1. Check Supabase table directly via client JS
+        if (!forceRotate && supabase) {
+            try {
+                const { data: dbTokens } = await supabase
+                    .from('qr_tokens')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (dbTokens && dbTokens.length > 0) {
+                    const latest = dbTokens[0];
+                    const expTime = new Date(latest.expires_at.replace("Z", "+00:00")).getTime();
+                    const remMs = expTime - Date.now();
+                    if (remMs > 10000) {
+                        token = latest.token;
+                        expiresAtIso = latest.expires_at;
+                    }
+                }
+            } catch (e) {
+                console.warn('Supabase client select note:', e);
+            }
+        }
+
+        // 2. If no valid token from DB client, try backend API
+        if (!token) {
+            try {
+                const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
+                const method = forceRotate ? 'POST' : 'GET';
+                const apiData = await apiRequest(endpoint, { method });
+                if (apiData && apiData.token) {
+                    token = apiData.token;
+                    expiresAtIso = apiData.expires_at;
+                }
+            } catch (e) {
+                console.warn('Backend API qr-token note:', e);
+            }
+        }
+
+        // 3. Fallback: Generate token directly in JS and insert into Supabase!
+        if (!token) {
+            const rawBytes = new Uint8Array(6);
+            window.crypto.getRandomValues(rawBytes);
+            token = Array.from(rawBytes, b => b.toString(16).padStart(2, '0')).join('');
+            const expiresDate = new Date(Date.now() + 7 * 60 * 1000);
+            expiresAtIso = expiresDate.toISOString();
+
+            if (supabase) {
+                try {
+                    await supabase.from('qr_tokens').insert({
+                        token: token,
+                        created_at: now.toISOString(),
+                        expires_at: expiresAtIso,
+                    });
+                } catch (dbErr) {
+                    console.warn('Direct Supabase insert note:', dbErr);
+                }
+            }
+        }
+
+        if (!token) return;
 
         // Build target scan URL for students
-        const scanUrl = window.location.origin + '/check-in.html?token=' + data.token;
+        const scanUrl = window.location.origin + '/check-in.html?token=' + token;
 
         const urlTextEl = document.getElementById('qr-url-text');
         if (urlTextEl) urlTextEl.textContent = scanUrl;
 
         const otpDisplay = document.getElementById('admin-otp-display');
-        if (otpDisplay) otpDisplay.textContent = data.token;
+        if (otpDisplay) otpDisplay.textContent = token;
 
-        // Render Python-generated QR Code image
+        // Render high-res crisp QR Code image
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            if (data.qr_image) {
-                container.innerHTML = `<img src="${data.qr_image}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`;
-            } else {
-                const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-                container.innerHTML = `<img src="${fallbackUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 8px; display: block; margin: 0 auto;" />`;
-            }
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+            container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
         }
 
-        // Expiration calculation
-        const expiresDate = new Date(data.expires_at.replace("Z", "+00:00"));
+        // Expiration calculation & start 7-minute countdown
+        const expiresDate = new Date(expiresAtIso.replace("Z", "+00:00"));
         qrExpiresAtMs = expiresDate.getTime();
 
         startQRCountdown();
