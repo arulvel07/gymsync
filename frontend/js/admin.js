@@ -439,6 +439,7 @@ async function handleUpdateConfig(e) {
 
         showToast('Gym configuration updated', 'success');
         loadAdminOccupancy();
+        loadAdminQRToken(true);
     } catch (err) {
         showToast(err.message || 'Failed to update config', 'error');
     } finally {
@@ -491,6 +492,65 @@ async function loadAdminQRToken(forceRotate = false) {
         let qrImage = null;
 
         const supabase = window.SUPABASE_CLIENT;
+
+        // Check if gym operational status is set to CLOSED or outside operating hours in gym_config
+        if (supabase) {
+            try {
+                const { data: cfg } = await supabase.from('gym_config').select('*').eq('id', 1).single();
+                if (cfg) {
+                    const isOpenToggle = cfg.is_open !== false;
+                    const openTime = cfg.open_time || '06:00';
+                    const closeTime = cfg.close_time || '22:00';
+
+                    // Current IST time HH:MM
+                    const now = new Date();
+                    const istMs = now.getTime() + (5 * 60 + 30) * 60000;
+                    const istDate = new Date(istMs);
+                    const hours = String(istDate.getUTCHours()).padStart(2, '0');
+                    const mins = String(istDate.getUTCMinutes()).padStart(2, '0');
+                    const currentISTStr = `${hours}:${mins}`;
+
+                    let withinHours = true;
+                    if (openTime <= closeTime) {
+                        withinHours = (currentISTStr >= openTime && currentISTStr <= closeTime);
+                    } else {
+                        withinHours = (currentISTStr >= openTime || currentISTStr <= closeTime);
+                    }
+
+                    if (!isOpenToggle || !withinHours) {
+                        const container = document.getElementById('admin-qr-container');
+                        if (container) {
+                            const reason = !isOpenToggle ? 'Operational status is set to OFF in Facility Config.' : `Outside operating hours (${openTime} - ${closeTime}).`;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px;">
+                                    <div style="font-size: 2.5rem; margin-bottom: 8px;">🔒</div>
+                                    <div style="font-size: 1.05rem; font-weight: 800; color: #fb7185; margin-bottom: 4px;">Facility Currently Closed</div>
+                                    <p style="font-size: 0.78rem; color: #94a3b8;">${reason} Check-in token generation suspended.</p>
+                                </div>`;
+                        }
+                        const otpDisplay = document.getElementById('admin-otp-display');
+                        if (otpDisplay) otpDisplay.textContent = 'CLOSED';
+
+                        const timerDisplay = document.getElementById('qr-timer-display');
+                        if (timerDisplay) {
+                            timerDisplay.textContent = 'Facility Closed';
+                            timerDisplay.style.color = 'var(--accent-rose)';
+                        }
+
+                        const badgeEl = document.getElementById('admin-status-badge');
+                        if (badgeEl) {
+                            badgeEl.className = 'badge badge-rose';
+                            badgeEl.textContent = '● Facility Closed';
+                        }
+
+                        clearInterval(qrTimerInterval);
+                        return;
+                    }
+                }
+            } catch (cfgErr) {
+                console.warn('gym_config check note:', cfgErr);
+            }
+        }
 
         // 1. If forceRotate (button clicked or expired), generate brand new token
         if (forceRotate) {

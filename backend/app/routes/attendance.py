@@ -11,6 +11,8 @@ from app.models import (
     OccupancyResponse,
 )
 
+from datetime import datetime, timezone, timedelta
+
 router = APIRouter(prefix="/api", tags=["attendance"])
 
 VALID_WORKOUT_TYPES = [
@@ -19,10 +21,67 @@ VALID_WORKOUT_TYPES = [
 ]
 
 
+def auto_checkout_all_active_sessions(db):
+    """Automatically check out all active gym sessions when gym is closed."""
+    try:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        active = db.table("gym_sessions").select("*").is_("check_out", "null").execute()
+        if active.data:
+            for s in active.data:
+                check_in_dt = datetime.fromisoformat(s["check_in"].replace("Z", "+00:00"))
+                dur = max(1, int((datetime.now(timezone.utc) - check_in_dt).total_seconds() / 60))
+                db.table("gym_sessions").update({
+                    "check_out": now_iso,
+                    "duration_minutes": dur,
+                }).eq("id", s["id"]).execute()
+            print(f"Auto checked out {len(active.data)} active sessions at closing time.")
+    except Exception as e:
+        print(f"Auto checkout error note: {e}")
+
+
+def check_facility_open_status(db) -> tuple[bool, str]:
+    """Check if gym is open based on manual toggle AND operational hours (IST)."""
+    now_utc = datetime.now(timezone.utc)
+    ist_time = now_utc + timedelta(hours=5, minutes=30)
+    current_time_str = ist_time.strftime("%H:%M")
+
+    try:
+        res = db.table("gym_config").select("*").eq("id", 1).single().execute()
+        if not res.data:
+            return True, "Open"
+
+        cfg = res.data
+        is_open_toggle = cfg.get("is_open", True)
+        open_time = cfg.get("open_time", "06:00")
+        close_time = cfg.get("close_time", "22:00")
+
+        # 1. Manual toggle is OFF
+        if not is_open_toggle:
+            auto_checkout_all_active_sessions(db)
+            return False, "Gym is currently closed by administration."
+
+        # 2. Operational hours comparison in IST
+        if open_time <= close_time:
+            within_hours = (open_time <= current_time_str <= close_time)
+        else:
+            within_hours = (current_time_str >= open_time or current_time_str <= close_time)
+
+        if not within_hours:
+            auto_checkout_all_active_sessions(db)
+            return False, f"Gym is currently closed. Operating hours: {open_time} - {close_time}."
+
+        return True, "Open"
+    except Exception as e:
+        print(f"Facility open status check note: {e}")
+        return True, "Open"
+
+
 @router.get("/occupancy", response_model=OccupancyResponse)
 async def get_occupancy():
     """Get current gym occupancy — PUBLIC endpoint (no auth required)."""
     db = get_supabase()
+
+    is_open, _ = check_facility_open_status(db)
 
     # Current active sessions
     active = (
@@ -48,7 +107,6 @@ async def get_occupancy():
     # Gym config
     config = db.table("gym_config").select("*").eq("id", 1).single().execute()
     max_cap = config.data["max_capacity"] if config.data else 50
-    is_open = config.data["is_open"] if config.data else True
 
     percentage = round((current_count / max_cap) * 100, 1) if max_cap > 0 else 0
 
@@ -150,6 +208,19 @@ async def check_in(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Workout type cannot be empty",
         )
+
+    # Check if gym facility is currently open
+    try:
+        cfg_res = db.table("gym_config").select("is_open").eq("id", 1).single().execute()
+        if cfg_res.data and not cfg_res.data.get("is_open", True):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="⛔ Gym is currently closed by administration. Check-in suspended.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Check gym_config is_open note: {e}")
 
     # Validate QR token if provided
     if body.qr_token:

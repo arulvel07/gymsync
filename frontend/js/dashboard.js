@@ -196,12 +196,50 @@ async function checkActiveSession() {
     }
 }
 
+async function checkGymOperationalStatus() {
+    const supabase = window.SUPABASE_CLIENT;
+
+    try {
+        const { data: cfg } = await supabase.from('gym_config').select('*').eq('id', 1).single();
+        if (cfg) {
+            const isOpenToggle = cfg.is_open !== false;
+            const openTime = cfg.open_time || '06:00';
+            const closeTime = cfg.close_time || '22:00';
+
+            const now = new Date();
+            const istMs = now.getTime() + (5 * 60 + 30) * 60000;
+            const istDate = new Date(istMs);
+            const hours = String(istDate.getUTCHours()).padStart(2, '0');
+            const mins = String(istDate.getUTCMinutes()).padStart(2, '0');
+            const currentISTStr = `${hours}:${mins}`;
+
+            let withinHours = true;
+            if (openTime <= closeTime) {
+                withinHours = (currentISTStr >= openTime && currentISTStr <= closeTime);
+            } else {
+                withinHours = (currentISTStr >= openTime || currentISTStr <= closeTime);
+            }
+
+            if (!isOpenToggle || !withinHours) {
+                return {
+                    isOpen: false,
+                    reason: !isOpenToggle ? 'Gym is currently closed by administration.' : `Gym is currently closed. Operating hours are ${openTime} - ${closeTime}.`
+                };
+            }
+        }
+    } catch (e) {
+        console.warn('checkGymOperationalStatus note:', e);
+    }
+    return { isOpen: true, reason: 'Open' };
+}
+
 function showCheckinUI() {
     const checkinPanel = document.getElementById('checkin-panel');
     const checkoutPanel = document.getElementById('checkout-panel');
     if (checkinPanel) checkinPanel.style.display = 'block';
     if (checkoutPanel) checkoutPanel.style.display = 'none';
     clearInterval(timerInterval);
+    checkGymOperationalStatus();
 }
 
 function showCheckoutUI() {
@@ -362,6 +400,12 @@ async function executeQRCheckIn(qrToken, workoutType) {
 }
 
 async function handleCheckIn() {
+    const status = await checkGymOperationalStatus();
+    if (!status.isOpen) {
+        showToast(`⛔ ${status.reason}`, 'error');
+        return;
+    }
+
     const selected = document.querySelector('.workout-pill.active');
     if (!selected) {
         showToast('Please select a workout type', 'error');
