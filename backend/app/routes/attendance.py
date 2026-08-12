@@ -78,6 +78,66 @@ def ensure_user_profile(db, user: dict):
         print(f"Error ensuring profile: {e}")
 
 
+def validate_qr_token_helper(token: str) -> dict:
+    """Validate token against Supabase qr_tokens table and in-memory cache."""
+    now = datetime.now(timezone.utc)
+
+    # 1. Check Supabase database table
+    try:
+        db = get_supabase()
+        res = db.table("qr_tokens").select("*").eq("token", token).execute()
+        if res.data:
+            record = res.data[0]
+            expires = datetime.fromisoformat(record["expires_at"].replace("Z", "+00:00"))
+            remaining = int((expires - now).total_seconds())
+
+            if remaining > 0:
+                return {
+                    "valid": True,
+                    "token": token,
+                    "remaining_seconds": remaining,
+                    "message": "Valid QR code token",
+                }
+            else:
+                return {
+                    "valid": False,
+                    "token": token,
+                    "remaining_seconds": 0,
+                    "message": "❌ QR Code Expired. Please scan the latest QR displayed at the gym.",
+                }
+    except Exception as e:
+        print(f"Supabase qr_tokens validation note: {e}")
+
+    # 2. Check in-memory token cache fallback
+    from app.routes.admin import _CURRENT_QR_TOKEN
+    if _CURRENT_QR_TOKEN and _CURRENT_QR_TOKEN.get("token") == token:
+        try:
+            expires = datetime.fromisoformat(_CURRENT_QR_TOKEN["expires_at"].replace("Z", "+00:00"))
+            remaining = int((expires - now).total_seconds())
+            if remaining > 0:
+                return {
+                    "valid": True,
+                    "token": token,
+                    "remaining_seconds": remaining,
+                    "message": "Valid QR code token",
+                }
+        except Exception:
+            pass
+
+    return {
+        "valid": False,
+        "token": token,
+        "remaining_seconds": 0,
+        "message": "❌ QR Code Expired. Please scan the latest QR displayed at the gym.",
+    }
+
+
+@router.get("/qr-tokens/validate")
+async def validate_qr_token(token: str = Query(...)):
+    """Validate dynamic entrance QR token (Public endpoint)."""
+    return validate_qr_token_helper(token)
+
+
 @router.post("/check-in", response_model=SessionResponse)
 async def check_in(
     body: CheckInRequest,

@@ -37,6 +37,7 @@ async function initAdmin() {
         loadHourlyChart(),
         loadWorkoutPieChart(),
         loadGymConfig(),
+        loadAdminQRToken(),
     ]);
 
     // Setup sidebar & mobile navigation
