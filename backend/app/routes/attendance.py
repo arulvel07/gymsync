@@ -21,6 +21,30 @@ VALID_WORKOUT_TYPES = [
 ]
 
 
+# Max session duration before auto-checkout (set to 1 minute for testing, change to 120 for 2 hours)
+MAX_SESSION_MINUTES = 1
+
+
+def auto_checkout_expired_sessions(db):
+    """Automatically check out sessions that exceed the max session duration."""
+    try:
+        now_utc = datetime.now(timezone.utc)
+        active = db.table("gym_sessions").select("*").is_("check_out", "null").execute()
+        if active.data:
+            for s in active.data:
+                check_in_dt = datetime.fromisoformat(s["check_in"].replace("Z", "+00:00"))
+                elapsed_minutes = int((now_utc - check_in_dt).total_seconds() / 60)
+                if elapsed_minutes >= MAX_SESSION_MINUTES:
+                    checkout_dt = check_in_dt + timedelta(minutes=MAX_SESSION_MINUTES)
+                    db.table("gym_sessions").update({
+                        "check_out": checkout_dt.isoformat(),
+                        "duration_minutes": MAX_SESSION_MINUTES,
+                    }).eq("id", s["id"]).execute()
+                    print(f"Auto checked out session {s['id']} after reaching max limit ({MAX_SESSION_MINUTES} min).")
+    except Exception as e:
+        print(f"Auto checkout expired sessions note: {e}")
+
+
 def auto_checkout_all_active_sessions(db):
     """Automatically check out all active gym sessions when gym is closed."""
     try:
@@ -81,6 +105,7 @@ async def get_occupancy():
     """Get current gym occupancy — PUBLIC endpoint (no auth required)."""
     db = get_supabase()
 
+    auto_checkout_expired_sessions(db)
     is_open, _ = check_facility_open_status(db)
 
     # Current active sessions
@@ -362,6 +387,7 @@ async def check_out(user: dict = Depends(get_current_user)):
 async def get_active_session(user: dict = Depends(get_current_user)):
     """Check if user has an active gym session."""
     db = get_supabase()
+    auto_checkout_expired_sessions(db)
     ensure_user_profile(db, user)
     try:
         active = (

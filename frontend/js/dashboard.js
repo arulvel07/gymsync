@@ -258,11 +258,24 @@ function showCheckoutUI() {
     startTimer();
 }
 
+// Max session duration before auto-checkout (set to 1 minute for testing, change to 120 for 2 hours)
+const MAX_SESSION_MINUTES = 1;
+
 function startTimer() {
     if (!activeSession) return;
     clearInterval(timerInterval);
 
     const update = () => {
+        const checkInTime = parseUTC(activeSession.check_in).getTime();
+        const elapsedMinutes = (Date.now() - checkInTime) / 60000;
+
+        if (elapsedMinutes >= MAX_SESSION_MINUTES) {
+            clearInterval(timerInterval);
+            handleCheckOut(true);
+            showToast(`⏰ Workout duration limit reached (${MAX_SESSION_MINUTES} min). Auto checked out!`, 'info');
+            return;
+        }
+
         const elapsed = getElapsedTime(activeSession.check_in);
         const timerEl = document.getElementById('session-timer');
         if (timerEl) timerEl.textContent = elapsed.display;
