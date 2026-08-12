@@ -12,12 +12,32 @@ async function initAuthPage() {
     const googleBtn = document.querySelector('.google-auth-btn');
     if (googleBtn) {
         googleBtn.addEventListener('click', handleGoogleAuth);
-        console.log("Button listener attached successfully.");
-    } else {
-        console.error("Could not find the Google Auth button in the HTML.");
     }
 
-    // Check if user is already logged in
+    const supabase = window.SUPABASE_CLIENT;
+    if (supabase) {
+        try {
+            // 1. Immediate session check
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const pendingToken = sessionStorage.getItem('pending_qr_token');
+                window.location.href = pendingToken ? `check-in.html?token=${encodeURIComponent(pendingToken)}` : 'dashboard.html';
+                return;
+            }
+
+            // 2. Direct Auth State Listener for Google OAuth async token parsing
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+                    const pendingToken = sessionStorage.getItem('pending_qr_token');
+                    window.location.href = pendingToken ? `check-in.html?token=${encodeURIComponent(pendingToken)}` : 'dashboard.html';
+                }
+            });
+        } catch (e) {
+            console.warn('Auth check note:', e);
+        }
+    }
+
+    // Fallback check
     try {
         const alreadyAuth = await redirectIfAuth();
         if (alreadyAuth) return;
