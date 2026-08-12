@@ -602,23 +602,25 @@ body {
     display: none;
 }
 
-/* ── Admin Sidebar & Layout ──────────────────── */
+/* ── Admin Command Center Grids & Layout ────── */
 .admin-layout {
+    display: flex;
     min-height: 100vh;
     padding-top: 56px;
-    position: relative;
     width: 100%;
+    position: relative;
 }
 
 .admin-sidebar {
-    background: var(--bg-surface);
-    border-right: 1px solid var(--border-subtle);
-    padding: 24px 14px;
+    width: 240px;
+    flex-shrink: 0;
     position: fixed;
     top: 56px;
     left: 0;
     bottom: 0;
-    width: 240px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-subtle);
+    padding: 24px 14px;
     overflow-y: auto;
     z-index: 90;
     display: flex;
@@ -627,10 +629,36 @@ body {
 }
 
 .admin-content {
+    flex: 1;
     margin-left: 240px;
     padding: 32px 40px 60px;
     width: calc(100% - 240px);
     min-width: 0;
+    box-sizing: border-box;
+}
+
+.admin-telemetry-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+    width: 100%;
+}
+
+.admin-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    width: 100%;
 }
 
 .admin-mobile-subnav {
@@ -798,7 +826,16 @@ body {
 }
 
 /* ── Mobile & Tablet Responsiveness ──────────── */
+@media (max-width: 1280px) {
+    .admin-kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 @media (max-width: 1024px) {
+    .admin-layout {
+        flex-direction: column;
+    }
     .admin-sidebar {
         display: none;
     }
@@ -810,6 +847,10 @@ body {
         margin-left: 0;
         width: 100%;
         padding: 20px 16px;
+    }
+    .admin-telemetry-grid,
+    .admin-charts-grid {
+        grid-template-columns: 1fr;
     }
 }
 
