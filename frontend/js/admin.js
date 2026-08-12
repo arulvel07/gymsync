@@ -458,42 +458,39 @@ async function handleExportCSV() {
 let qrTimerInterval = null;
 let qrExpiresAtMs = 0;
 
+function parseUTC(dateStr) {
+    if (!dateStr) return new Date();
+    let s = String(dateStr).trim();
+    if (!s.includes('Z') && !s.includes('+') && !s.includes('-')) {
+        s = s.replace(' ', 'T') + 'Z';
+    } else {
+        s = s.replace(' ', 'T');
+    }
+    return new Date(s);
+}
+
 async function loadAdminQRToken(forceRotate = false) {
     try {
         let token = null;
         let expiresAtIso = null;
-        let qrImage = null;
 
         const supabase = window.SUPABASE_CLIENT;
-        const now = new Date();
 
-        // 1. Try fetching Python QR image & token from backend API
-        try {
-            const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
-            const method = forceRotate ? 'POST' : 'GET';
-            const apiData = await apiRequest(endpoint, { method });
-            if (apiData && apiData.token) {
-                token = apiData.token;
-                expiresAtIso = apiData.expires_at;
-                qrImage = apiData.qr_image;
-            }
-        } catch (e) {
-            console.warn('Backend API qr-token note:', e);
-        }
-
-        // 2. If API unreachable, query Supabase for latest active token
-        if (!token && supabase) {
+        // 1. If not force rotate, query Supabase for latest active token
+        if (!forceRotate && supabase) {
             try {
-                const { data: dbTokens } = await supabase
+                const { data: dbTokens, error: selErr } = await supabase
                     .from('qr_tokens')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(1);
 
+                if (selErr) console.warn('Supabase select note:', selErr);
+
                 if (dbTokens && dbTokens.length > 0) {
                     const latest = dbTokens[0];
-                    const expTime = new Date(latest.expires_at.replace("Z", "+00:00")).getTime();
-                    if (expTime - Date.now() > 15000) {
+                    const expTime = parseUTC(latest.expires_at).getTime();
+                    if (expTime - Date.now() > 5000) {
                         token = latest.token;
                         expiresAtIso = latest.expires_at;
                     }
@@ -503,7 +500,7 @@ async function loadAdminQRToken(forceRotate = false) {
             }
         }
 
-        // 3. Generate new 12-char hex token if needed
+        // 2. Generate new 12-char hex token if needed or requested
         if (!token) {
             const rawBytes = new Uint8Array(6);
             window.crypto.getRandomValues(rawBytes);
@@ -514,11 +511,14 @@ async function loadAdminQRToken(forceRotate = false) {
 
             if (supabase) {
                 try {
-                    await supabase.from('qr_tokens').insert([{
+                    const { error: insErr } = await supabase.from('qr_tokens').insert([{
                         token: token,
-                        created_at: now.toISOString(),
+                        created_at: new Date().toISOString(),
                         expires_at: expiresAtIso,
                     }]);
+                    if (insErr) {
+                        console.warn('Supabase insert note:', insErr);
+                    }
                 } catch (dbErr) {
                     console.warn('Supabase insert exception:', dbErr);
                 }
@@ -527,7 +527,7 @@ async function loadAdminQRToken(forceRotate = false) {
 
         if (!token) return;
 
-        // Render scan URL, OTP code, and Python QR Image
+        // 3. Render scan URL, OTP code, and QR Image
         const scanUrl = window.location.origin + '/check-in.html?token=' + token;
 
         const urlTextEl = document.getElementById('qr-url-text');
@@ -539,13 +539,12 @@ async function loadAdminQRToken(forceRotate = false) {
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            const imgSrc = qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-            container.innerHTML = `<img src="${imgSrc}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+            container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
         }
 
         // Start 7-minute countdown
-        const expiresDate = new Date(expiresAtIso.replace("Z", "+00:00"));
-        qrExpiresAtMs = expiresDate.getTime();
+        qrExpiresAtMs = parseUTC(expiresAtIso).getTime();
         startQRCountdown();
     } catch (err) {
         console.error('Failed to load admin QR token:', err);
