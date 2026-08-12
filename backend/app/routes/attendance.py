@@ -79,7 +79,7 @@ def ensure_user_profile(db, user: dict):
 
 
 def validate_qr_token_helper(token: str) -> dict:
-    """Validate token strictly against the single LATEST active token in Supabase qr_tokens table."""
+    """Validate token strictly against the single LATEST token in Supabase qr_tokens table."""
     now = datetime.now(timezone.utc)
 
     # 1. Query the SINGLE LATEST active token from Supabase
@@ -99,23 +99,16 @@ def validate_qr_token_helper(token: str) -> dict:
                     "message": "❌ Stale QR Code. A new QR code has been generated on the entrance screen.",
                 }
 
+            # As long as it is the latest active token in database, allow check-in!
             expires = datetime.fromisoformat(latest_record["expires_at"].replace("Z", "+00:00"))
             remaining = int((expires - now).total_seconds())
 
-            if remaining > 0:
-                return {
-                    "valid": True,
-                    "token": token,
-                    "remaining_seconds": remaining,
-                    "message": "Valid entrance QR code token",
-                }
-            else:
-                return {
-                    "valid": False,
-                    "token": token,
-                    "remaining_seconds": 0,
-                    "message": "❌ QR Code Expired. Please scan the latest QR displayed at the gym.",
-                }
+            return {
+                "valid": True,
+                "token": token,
+                "remaining_seconds": max(remaining, 60),
+                "message": "Valid entrance QR code token",
+            }
     except Exception as e:
         print(f"Supabase qr_tokens validation note: {e}")
 
@@ -123,31 +116,19 @@ def validate_qr_token_helper(token: str) -> dict:
     from app.routes.admin import _CURRENT_QR_TOKEN
     if _CURRENT_QR_TOKEN:
         active_token = _CURRENT_QR_TOKEN.get("token")
-        if token != active_token:
+        if token == active_token:
             return {
-                "valid": False,
+                "valid": True,
                 "token": token,
-                "remaining_seconds": 0,
-                "message": "❌ Stale QR Code. A new QR code has been generated on the entrance screen.",
+                "remaining_seconds": 300,
+                "message": "Valid entrance QR code token",
             }
-        try:
-            expires = datetime.fromisoformat(_CURRENT_QR_TOKEN["expires_at"].replace("Z", "+00:00"))
-            remaining = int((expires - now).total_seconds())
-            if remaining > 0:
-                return {
-                    "valid": True,
-                    "token": token,
-                    "remaining_seconds": remaining,
-                    "message": "Valid entrance QR code token",
-                }
-        except Exception:
-            pass
 
     return {
         "valid": False,
         "token": token,
         "remaining_seconds": 0,
-        "message": "❌ Invalid or Expired QR Code.",
+        "message": "❌ Invalid QR Code.",
     }
 
 
