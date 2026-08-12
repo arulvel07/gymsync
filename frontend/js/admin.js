@@ -6,32 +6,10 @@
 let currentAdminSection = 'overview';
 
 document.addEventListener('DOMContentLoaded', () => {
-    initAdmin();
-});
-
-async function initAdmin() {
-    const session = await requireAuth();
-    if (!session) return;
-
-    // Verify admin role
-    try {
-        const profile = await apiRequest('/api/profile');
-        if (profile.role !== 'admin') {
-            showToast('Admin access required', 'error');
-            window.location.href = 'dashboard.html';
-            return;
-        }
-        document.getElementById('admin-name').textContent = profile.full_name || profile.roll_number || 'Administrator';
-    } catch (err) {
-        showToast('Failed to verify admin access', 'error');
-        window.location.href = 'dashboard.html';
-        return;
-    }
-
-    // Setup sidebar & mobile navigation FIRST so clicks always work instantly
+    // Setup sidebar & mobile navigation IMMEDIATELY on load
     setupSidebarNav();
 
-    // Setup event listeners FIRST
+    // Setup event listeners IMMEDIATELY
     document.getElementById('config-form')?.addEventListener('submit', handleUpdateConfig);
     document.getElementById('export-csv-btn')?.addEventListener('click', handleExportCSV);
     document.getElementById('rotate-qr-btn')?.addEventListener('click', () => loadAdminQRToken(true));
@@ -40,7 +18,30 @@ async function initAdmin() {
     document.getElementById('date-to')?.addEventListener('change', () => loadAttendanceLog());
     document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
 
-    // Load admin data asynchronously with failure isolation
+    initAdmin();
+});
+
+async function initAdmin() {
+    const session = await requireAuth();
+    if (!session) return;
+
+    // Verify admin role asynchronously
+    try {
+        const profile = await apiRequest('/api/profile');
+        if (profile && profile.role !== 'admin') {
+            showToast('Admin access required', 'error');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+        if (profile) {
+            const adminNameEl = document.getElementById('admin-name');
+            if (adminNameEl) adminNameEl.textContent = profile.full_name || profile.roll_number || 'Administrator';
+        }
+    } catch (err) {
+        console.warn('Profile verify note:', err);
+    }
+
+    // Load admin telemetry with failure isolation
     Promise.allSettled([
         loadAdminSummary(),
         loadAdminOccupancy(),
@@ -52,7 +53,7 @@ async function initAdmin() {
         loadAdminQRToken(),
     ]);
 
-    // Auto-refresh every 60 seconds
+    // Auto-refresh telemetry every 60 seconds
     setInterval(() => {
         loadAdminSummary();
         loadAdminOccupancy();
