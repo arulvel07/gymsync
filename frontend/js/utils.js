@@ -289,7 +289,18 @@ async function redirectIfAuth() {
     const session = await window.SUPABASE_AUTH_READY;
 
     if (session) {
-        window.location.href = 'dashboard.html';
+        // Fetch the user's role to redirect to the correct portal
+        try {
+            const profile = await apiRequest('/api/profile');
+            if (profile && profile.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        } catch (e) {
+            // Fallback to student dashboard if profile fetch fails
+            window.location.href = 'dashboard.html';
+        }
         return true;
     }
 

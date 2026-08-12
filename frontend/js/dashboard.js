@@ -49,6 +49,13 @@ async function initDashboard() {
 async function loadProfile() {
     try {
         const profile = await apiRequest('/api/profile');
+
+        // If user is admin, redirect to admin portal
+        if (profile.role === 'admin') {
+            window.location.href = 'admin.html';
+            return;
+        }
+
         const nameEl = document.getElementById('user-name');
         const roleEl = document.getElementById('user-role');
         const welcomeEl = document.getElementById('welcome-heading');
