@@ -462,20 +462,33 @@ async function loadAdminQRToken(forceRotate = false) {
     try {
         let token = null;
         let expiresAtIso = null;
+        let qrImage = null;
 
         const supabase = window.SUPABASE_CLIENT;
         const now = new Date();
 
-        // 1. If not force rotate, query Supabase for latest active token
-        if (!forceRotate && supabase) {
+        // 1. Try fetching Python QR image & token from backend API
+        try {
+            const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
+            const method = forceRotate ? 'POST' : 'GET';
+            const apiData = await apiRequest(endpoint, { method });
+            if (apiData && apiData.token) {
+                token = apiData.token;
+                expiresAtIso = apiData.expires_at;
+                qrImage = apiData.qr_image;
+            }
+        } catch (e) {
+            console.warn('Backend API qr-token note:', e);
+        }
+
+        // 2. If API unreachable, query Supabase for latest active token
+        if (!token && supabase) {
             try {
-                const { data: dbTokens, error: selErr } = await supabase
+                const { data: dbTokens } = await supabase
                     .from('qr_tokens')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(1);
-
-                if (selErr) console.warn('Supabase select note:', selErr);
 
                 if (dbTokens && dbTokens.length > 0) {
                     const latest = dbTokens[0];
@@ -490,7 +503,7 @@ async function loadAdminQRToken(forceRotate = false) {
             }
         }
 
-        // 2. Generate new 12-char hex token if needed or requested
+        // 3. Generate new 12-char hex token if needed
         if (!token) {
             const rawBytes = new Uint8Array(6);
             window.crypto.getRandomValues(rawBytes);
@@ -499,17 +512,13 @@ async function loadAdminQRToken(forceRotate = false) {
             const expiresDate = new Date(Date.now() + 7 * 60 * 1000);
             expiresAtIso = expiresDate.toISOString();
 
-            // Insert new token into Supabase table
             if (supabase) {
                 try {
-                    const { error: insErr } = await supabase.from('qr_tokens').insert([{
+                    await supabase.from('qr_tokens').insert([{
                         token: token,
                         created_at: now.toISOString(),
                         expires_at: expiresAtIso,
                     }]);
-                    if (insErr) {
-                        console.warn('Supabase insert note:', insErr);
-                    }
                 } catch (dbErr) {
                     console.warn('Supabase insert exception:', dbErr);
                 }
@@ -518,7 +527,7 @@ async function loadAdminQRToken(forceRotate = false) {
 
         if (!token) return;
 
-        // 3. Render URL, OTP code, and QR Image
+        // Render scan URL, OTP code, and Python QR Image
         const scanUrl = window.location.origin + '/check-in.html?token=' + token;
 
         const urlTextEl = document.getElementById('qr-url-text');
@@ -530,11 +539,11 @@ async function loadAdminQRToken(forceRotate = false) {
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-            container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
+            const imgSrc = qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+            container.innerHTML = `<img src="${imgSrc}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
         }
 
-        // Start countdown
+        // Start 7-minute countdown
         const expiresDate = new Date(expiresAtIso.replace("Z", "+00:00"));
         qrExpiresAtMs = expiresDate.getTime();
         startQRCountdown();
