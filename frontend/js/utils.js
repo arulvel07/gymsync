@@ -341,11 +341,29 @@ function exportToCSV(data, filename = 'export.csv') {
 
 // ── Global Logout Handler ──────────────────────────────────
 async function handleLogout() {
-    const supabase = window.SUPABASE_CLIENT;
-    await supabase.auth.signOut();
+    try {
+        const supabase = window.SUPABASE_CLIENT;
+        if (supabase) {
+            await supabase.auth.signOut();
+        }
+    } catch (e) {
+        console.error('SignOut error:', e);
+    }
+
+    // Clear session & local storage auth keys completely
+    sessionStorage.clear();
+    try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.includes('sb-') || k.includes('supabase') || k.includes('auth'))) {
+                keysToRemove.push(k);
+            }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+
     showToast('Logged out successfully', 'info');
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 500);
+    window.location.href = 'index.html';
 }
 window.handleLogout = handleLogout;

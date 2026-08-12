@@ -32,11 +32,17 @@ async function handleGoogleAuth(e) {
 
     try {
         const supabase = window.SUPABASE_CLIENT;
+        const pendingToken = sessionStorage.getItem('pending_qr_token');
+        let redirectTarget = window.location.origin + '/dashboard.html';
+
+        if (pendingToken) {
+            redirectTarget = window.location.origin + '/check-in.html?token=' + encodeURIComponent(pendingToken);
+        }
 
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/dashboard.html',
+                redirectTo: redirectTarget,
                 queryParams: {
                     hd: 'iiitdm.ac.in', // Force Google to only accept college emails
                     prompt: 'select_account' // Always ask them to pick an account

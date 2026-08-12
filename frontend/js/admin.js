@@ -471,21 +471,31 @@ async function loadAdminQRToken(forceRotate = false) {
         const urlTextEl = document.getElementById('qr-url-text');
         if (urlTextEl) urlTextEl.textContent = scanUrl;
 
-        // Render QR Code using QRCode library
+        // Render QR Code using QRCode library with guaranteed fallback
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
+            let rendered = false;
+
             if (window.QRCode) {
-                new QRCode(container, {
-                    text: scanUrl,
-                    width: 260,
-                    height: 260,
-                    colorDark: '#0f172a',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.H,
-                });
-            } else {
-                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(scanUrl)}" alt="QR Code" style="width:260px; height:260px;" />`;
+                try {
+                    new QRCode(container, {
+                        text: scanUrl,
+                        width: 260,
+                        height: 260,
+                        colorDark: '#0f172a',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H,
+                    });
+                    rendered = true;
+                } catch (e) {
+                    console.warn('QRCode JS render error, using fallback:', e);
+                }
+            }
+
+            if (!rendered) {
+                const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+                container.innerHTML = `<img src="${fallbackUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 8px; display: block; margin: 0 auto;" />`;
             }
         }
 

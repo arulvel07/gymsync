@@ -263,12 +263,21 @@ async function handleCheckIn() {
     let workoutType = selected.dataset.type;
     if (workoutType === 'Others') {
         const customInput = document.getElementById('custom-workout-input');
-        const val = customInput ? customInput.value.strip ? customInput.value.trim() : customInput.value : '';
+        const val = customInput ? customInput.value.trim() : '';
         if (!val) {
             showToast('Please type your custom workout details', 'error');
             return;
         }
         workoutType = val;
+    }
+
+    // Retrieve active entrance QR token scanned by student
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrToken = urlParams.get('token') || sessionStorage.getItem('active_qr_token') || sessionStorage.getItem('pending_qr_token');
+
+    if (!qrToken) {
+        showToast('📱 Entrance QR Scan Required. Please scan the dynamic QR code displayed at the gym entrance to check in.', 'error', 6000);
+        return;
     }
 
     const btn = document.getElementById('checkin-btn');
@@ -277,7 +286,7 @@ async function handleCheckIn() {
     try {
         const session = await apiRequest('/api/check-in', {
             method: 'POST',
-            body: JSON.stringify({ workout_type: workoutType }),
+            body: JSON.stringify({ workout_type: workoutType, qr_token: qrToken }),
         });
         activeSession = session;
         showCheckoutUI();
