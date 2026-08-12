@@ -83,13 +83,22 @@ async def check_in(
     body: CheckInRequest,
     user: dict = Depends(get_current_user),
 ):
-    """Check into the gym with a workout type."""
+    """Check into the gym with a workout type (optionally validating QR token)."""
     db = get_supabase()
     if not body.workout_type or not body.workout_type.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Workout type cannot be empty",
         )
+
+    # Validate QR token if provided
+    if body.qr_token:
+        val = validate_qr_token_helper(body.qr_token)
+        if not val["valid"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=val["message"],
+            )
 
     try:
         # Check for existing active session

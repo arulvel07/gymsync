@@ -56,6 +56,13 @@ async function loadProfile() {
             return;
         }
 
+        // If pending QR check-in token exists, redirect to check-in page
+        const pendingToken = sessionStorage.getItem('pending_qr_token');
+        if (pendingToken) {
+            window.location.href = `check-in.html?token=${encodeURIComponent(pendingToken)}`;
+            return;
+        }
+
         const nameEl = document.getElementById('user-name');
         const roleEl = document.getElementById('user-role');
         const welcomeEl = document.getElementById('welcome-heading');

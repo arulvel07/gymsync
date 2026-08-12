@@ -292,13 +292,16 @@ async function redirectIfAuth() {
         // Fetch the user's role to redirect to the correct portal
         try {
             const profile = await apiRequest('/api/profile');
+            const pendingToken = sessionStorage.getItem('pending_qr_token');
+
             if (profile && profile.role === 'admin') {
                 window.location.href = 'admin.html';
+            } else if (pendingToken) {
+                window.location.href = `check-in.html?token=${encodeURIComponent(pendingToken)}`;
             } else {
                 window.location.href = 'dashboard.html';
             }
         } catch (e) {
-            // Fallback to student dashboard if profile fetch fails
             window.location.href = 'dashboard.html';
         }
         return true;

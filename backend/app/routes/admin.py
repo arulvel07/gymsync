@@ -1,12 +1,69 @@
-"""Admin-only routes: user management, all sessions, config, reports."""
-
+import secrets
 from fastapi import APIRouter, Depends, Query, HTTPException
 from datetime import datetime, timedelta, timezone
 from app.auth import require_admin
 from app.database import get_supabase
-from app.models import UpdateConfigRequest, SessionResponse
+from app.models import UpdateConfigRequest, SessionResponse, QRTokenResponse
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+# Global in-memory cache for fast QR token access & rotation
+_CURRENT_QR_TOKEN: dict | None = None
+
+
+def get_or_create_qr_token(force_new: bool = False) -> dict:
+    """Get active 7-minute QR token or generate a new token."""
+    global _CURRENT_QR_TOKEN
+    now = datetime.now(timezone.utc)
+
+    if not force_new and _CURRENT_QR_TOKEN:
+        try:
+            expires = datetime.fromisoformat(_CURRENT_QR_TOKEN["expires_at"].replace("Z", "+00:00"))
+            remaining = int((expires - now).total_seconds())
+            if remaining > 10:
+                _CURRENT_QR_TOKEN["valid_seconds"] = remaining
+                return _CURRENT_QR_TOKEN
+        except Exception:
+            pass
+
+    # Generate secure 12-char hex token
+    token = secrets.token_hex(6)
+    created_at = now.isoformat()
+    expires_at = (now + timedelta(minutes=7)).isoformat()
+
+    token_data = {
+        "token": token,
+        "created_at": created_at,
+        "expires_at": expires_at,
+        "valid_seconds": 420,
+    }
+
+    _CURRENT_QR_TOKEN = token_data
+
+    # Persist to database if qr_tokens table exists
+    try:
+        db = get_supabase()
+        db.table("qr_tokens").insert({
+            "token": token,
+            "created_at": created_at,
+            "expires_at": expires_at,
+        }).execute()
+    except Exception as e:
+        print(f"QR token DB insert note: {e}")
+
+    return token_data
+
+
+@router.get("/qr-token", response_model=QRTokenResponse)
+async def get_admin_qr_token(_admin: dict = Depends(require_admin)):
+    """Get active dynamic 7-minute QR check-in token (Admin only)."""
+    return get_or_create_qr_token(force_new=False)
+
+
+@router.post("/qr-token/rotate", response_model=QRTokenResponse)
+async def rotate_admin_qr_token(_admin: dict = Depends(require_admin)):
+    """Rotate and generate a new QR token immediately (Admin only)."""
+    return get_or_create_qr_token(force_new=True)
 
 
 @router.get("/users")

@@ -261,3 +261,15 @@ GRANT ALL ON public.gym_config TO service_role;
 GRANT EXECUTE ON FUNCTION public.get_current_occupancy TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_workout_distribution TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_hourly_distribution TO anon, authenticated, service_role;
+
+-- 6. QR TOKENS TABLE
+-- Dynamic 7-minute tokens for gym QR check-in
+CREATE TABLE IF NOT EXISTS public.qr_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+GRANT ALL ON public.qr_tokens TO service_role;
+

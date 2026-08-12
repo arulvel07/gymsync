@@ -9,6 +9,21 @@ from typing import Optional
 
 class CheckInRequest(BaseModel):
     workout_type: str
+    qr_token: Optional[str] = None
+
+
+class QRTokenResponse(BaseModel):
+    token: str
+    created_at: str
+    expires_at: str
+    valid_seconds: int
+
+
+class QRValidationResponse(BaseModel):
+    valid: bool
+    token: str
+    remaining_seconds: int = 0
+    message: str = ""
 
 
 class CheckOutRequest(BaseModel):

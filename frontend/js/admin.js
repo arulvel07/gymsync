@@ -45,6 +45,7 @@ async function initAdmin() {
     // Setup event listeners
     document.getElementById('config-form')?.addEventListener('submit', handleUpdateConfig);
     document.getElementById('export-csv-btn')?.addEventListener('click', handleExportCSV);
+    document.getElementById('rotate-qr-btn')?.addEventListener('click', () => loadAdminQRToken(true));
     document.getElementById('attendance-search')?.addEventListener('input', debounce(handleAttendanceSearch, 300));
     document.getElementById('date-from')?.addEventListener('change', () => loadAttendanceLog());
     document.getElementById('date-to')?.addEventListener('change', () => loadAttendanceLog());
@@ -90,6 +91,9 @@ function showSection(section) {
     });
 
     currentAdminSection = section;
+    if (section === 'qr-code') {
+        loadAdminQRToken();
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -448,6 +452,96 @@ async function handleExportCSV() {
 }
 
 
+// ── Dynamic Entrance QR Code ───────────────────────────────
+
+let qrTimerInterval = null;
+let qrExpiresAtMs = 0;
+
+async function loadAdminQRToken(forceRotate = false) {
+    try {
+        const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
+        const method = forceRotate ? 'POST' : 'GET';
+        const data = await apiRequest(endpoint, { method });
+
+        if (!data || !data.token) return;
+
+        // Build target scan URL for students
+        const scanUrl = window.location.origin + '/check-in.html?token=' + data.token;
+
+        const urlTextEl = document.getElementById('qr-url-text');
+        if (urlTextEl) urlTextEl.textContent = scanUrl;
+
+        // Render QR Code using QRCode library
+        const container = document.getElementById('admin-qr-container');
+        if (container) {
+            container.innerHTML = '';
+            if (window.QRCode) {
+                new QRCode(container, {
+                    text: scanUrl,
+                    width: 260,
+                    height: 260,
+                    colorDark: '#0f172a',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H,
+                });
+            } else {
+                container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(scanUrl)}" alt="QR Code" style="width:260px; height:260px;" />`;
+            }
+        }
+
+        // Expiration calculation
+        const expiresDate = new Date(data.expires_at.replace("Z", "+00:00"));
+        qrExpiresAtMs = expiresDate.getTime();
+
+        startQRCountdown();
+    } catch (err) {
+        console.error('Failed to load admin QR token:', err);
+    }
+}
+
+function startQRCountdown() {
+    clearInterval(qrTimerInterval);
+
+    const updateTimer = () => {
+        const now = Date.now();
+        const diffMs = qrExpiresAtMs - now;
+
+        const timerDisplay = document.getElementById('qr-timer-display');
+
+        if (diffMs <= 0) {
+            if (timerDisplay) {
+                timerDisplay.textContent = 'QR expires in: 00:00';
+                timerDisplay.style.color = 'var(--accent-rose)';
+            }
+            clearInterval(qrTimerInterval);
+            // Automatically generate & display new QR code without page refresh!
+            loadAdminQRToken(true);
+            return;
+        }
+
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+
+        const displayStr = `QR expires in: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (timerDisplay) {
+            timerDisplay.textContent = displayStr;
+            if (totalSeconds < 60) {
+                timerDisplay.style.color = 'var(--accent-rose)';
+            } else if (totalSeconds < 180) {
+                timerDisplay.style.color = 'var(--accent-amber)';
+            } else {
+                timerDisplay.style.color = 'var(--accent-emerald)';
+            }
+        }
+    };
+
+    updateTimer();
+    qrTimerInterval = setInterval(updateTimer, 1000);
+}
+
+
 // ── Utility Helpers ────────────────────────────────────────
 
 function debounce(fn, delay) {
@@ -462,3 +556,4 @@ window.showSection = showSection;
 window.loadAdminSummary = loadAdminSummary;
 window.loadAdminOccupancy = loadAdminOccupancy;
 window.handleExportCSV = handleExportCSV;
+window.loadAdminQRToken = loadAdminQRToken;
