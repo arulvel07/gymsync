@@ -97,15 +97,16 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
 
     _CURRENT_QR_TOKEN = token_data
 
-    # Save to Supabase table
+    # Save/Update single token row in Supabase table
     try:
-        db.table("qr_tokens").insert({
+        db.table("qr_tokens").upsert({
+            "id": "00000000-0000-0000-0000-000000000001",
             "token": token,
             "created_at": created_at,
             "expires_at": expires_at,
         }).execute()
     except Exception as e:
-        print(f"Supabase qr_tokens insert note: {e}")
+        print(f"Supabase qr_tokens upsert note: {e}")
 
     return token_data
 

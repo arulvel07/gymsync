@@ -511,16 +511,23 @@ async function loadAdminQRToken(forceRotate = false) {
 
             if (supabase) {
                 try {
-                    const { error: insErr } = await supabase.from('qr_tokens').insert([{
+                    // Single row UPSERT to avoid creating multiple rows in Supabase
+                    const { error: upsertErr } = await supabase.from('qr_tokens').upsert([{
+                        id: '00000000-0000-0000-0000-000000000001',
                         token: token,
                         created_at: new Date().toISOString(),
                         expires_at: expiresAtIso,
                     }]);
-                    if (insErr) {
-                        console.warn('Supabase insert note:', insErr);
+                    if (upsertErr) {
+                        // Fallback insert without id if upsert fails
+                        await supabase.from('qr_tokens').insert([{
+                            token: token,
+                            created_at: new Date().toISOString(),
+                            expires_at: expiresAtIso,
+                        }]);
                     }
                 } catch (dbErr) {
-                    console.warn('Supabase insert exception:', dbErr);
+                    console.warn('Supabase token update exception:', dbErr);
                 }
             }
         }
