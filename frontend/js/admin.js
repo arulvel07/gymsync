@@ -561,8 +561,26 @@ async function loadAdminQRToken(forceRotate = false) {
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
-            container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
+            let rendered = false;
+            if (window.QRCode) {
+                try {
+                    new QRCode(container, {
+                        text: scanUrl,
+                        width: 260,
+                        height: 260,
+                        colorDark: '#0f172a',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M,
+                    });
+                    rendered = true;
+                } catch (e) {
+                    console.warn('QRCode JS render note:', e);
+                }
+            }
+            if (!rendered) {
+                const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
+                container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
+            }
         }
 
         // Start 7-minute countdown

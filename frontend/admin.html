@@ -454,10 +454,47 @@
         </div>
     </div>
 
+    <!-- Inline Failsafe Navigation Script -->
+    <script>
+        (function() {
+            function bindNav() {
+                const links = document.querySelectorAll('.sidebar-link[data-section], .admin-mobile-link[data-section]');
+                links.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const sec = this.getAttribute('data-section');
+                        const sections = document.querySelectorAll('.admin-section');
+                        sections.forEach(s => {
+                            s.style.display = (s.id === 'section-' + sec) ? 'block' : 'none';
+                        });
+                        links.forEach(l => l.classList.toggle('active', l.getAttribute('data-section') === sec));
+                        if (sec === 'qr-code' && typeof window.loadAdminQRToken === 'function') {
+                            window.loadAdminQRToken();
+                        }
+                    });
+                });
+                
+                // Handle hash link on page load
+                const hash = window.location.hash.replace('#', '');
+                if (hash && document.getElementById('section-' + hash)) {
+                    document.querySelectorAll('.admin-section').forEach(s => {
+                        s.style.display = (s.id === 'section-' + hash) ? 'block' : 'none';
+                    });
+                    links.forEach(l => l.classList.toggle('active', l.getAttribute('data-section') === hash));
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindNav);
+            } else {
+                bindNav();
+            }
+        })();
+    </script>
+
     <!-- Scripts -->
-    <script src="js/supabase-config.js?v=3.0.0"></script>
-    <script src="js/utils.js?v=3.0.0"></script>
-    <script src="js/admin.js?v=3.0.0"></script>
+    <script src="js/supabase-config.js?v=4.0.0"></script>
+    <script src="js/utils.js?v=4.0.0"></script>
+    <script src="js/admin.js?v=4.0.0"></script>
 </body>
 
 </html>
