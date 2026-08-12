@@ -22,6 +22,9 @@
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- HTML5 QRCode Scanner JS -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -324,6 +327,29 @@
         </div>
 
     </main>
+
+    <!-- ─── Camera QR Scanner Modal ────────────────────────────── -->
+    <div id="qr-scanner-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-card" style="max-width: 440px; width: 100%; text-align: center; padding: 24px; position: relative;">
+            <button id="close-scanner-btn" style="position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; line-height: 1;">✕</button>
+            
+            <span class="badge badge-blue" style="margin-bottom: 8px;">📷 Live Camera Scanner</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Scan Gym Entrance QR Code</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Point your phone camera at the dynamic QR code displayed on the entrance screen.</p>
+            
+            <!-- Camera Viewfinder Box -->
+            <div id="qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #09090b; margin-bottom: 16px; border: 1px solid var(--border-subtle);"></div>
+
+            <!-- Manual Token Input Fallback -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: 10px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">Or enter 12-digit Entrance OTP Token manually:</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="manual-token-input" class="form-input" placeholder="e.g. 8f92a7c1e43b" style="font-family: var(--font-mono); text-transform: lowercase;">
+                    <button id="submit-manual-token-btn" class="btn-primary" style="padding: 8px 14px; font-size: 0.82rem; white-space: nowrap;">Submit Token</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="js/supabase-config.js?v=1.4.0"></script>

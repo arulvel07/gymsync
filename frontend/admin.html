@@ -402,14 +402,14 @@
                 <div style="margin-bottom: 24px;">
                     <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-emerald); font-weight: 700; margin-bottom: 4px;">Entrance Telemetry</div>
                     <h1 style="font-size: 1.6rem; font-weight: 800;" class="gradient-text">Dynamic Entrance QR Check-In</h1>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Display this screen on a tablet or monitor at the gym entrance. Token automatically rotates every 7 minutes.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Display this screen on a monitor or tablet at the gym entrance. Students scan this QR code or enter the 12-char OTP to check in.</p>
                 </div>
 
                 <div class="glass-card" style="padding: 36px; max-width: 620px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                     
                     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                         <span class="badge badge-green">● Live Check-In Screen</span>
-                        <span class="badge badge-blue">7-Min Rotation</span>
+                        <span class="badge badge-blue">7-Min Token Rotation</span>
                     </div>
 
                     <!-- Countdown Display -->
@@ -421,13 +421,23 @@
                     </div>
 
                     <!-- QR Code Render Box -->
-                    <div style="background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-flex; justify-content: center; align-items: center; margin-bottom: 20px;">
-                        <div id="admin-qr-container" style="width: 260px; height: 260px;"></div>
+                    <div style="background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-flex; justify-content: center; align-items: center; margin-bottom: 20px; min-width: 280px; min-height: 280px;">
+                        <div id="admin-qr-container" style="width: 260px; height: 260px; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #64748b; font-size: 0.85rem;">Generating QR Code...</span>
+                        </div>
+                    </div>
+
+                    <!-- Large OTP Token Display -->
+                    <div style="width: 100%; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); font-weight: 700; margin-bottom: 4px;">Entrance OTP Token</div>
+                        <div id="admin-otp-display" style="font-family: var(--font-mono); font-size: 2rem; font-weight: 800; color: #ffffff; letter-spacing: 0.15em;">
+                            --------
+                        </div>
                     </div>
 
                     <!-- Target URL preview & Manual Controls -->
-                    <div style="width: 100%; border-top: 1px solid var(--border-subtle); padding-top: 18px; margin-top: 6px;">
-                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">Current Scan Target URL</div>
+                    <div style="width: 100%; border-top: 1px solid var(--border-subtle); padding-top: 18px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">Scan Target URL</div>
                         <div id="qr-url-text" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-blue); word-break: break-all; margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
                             Loading scan URL...
                         </div>

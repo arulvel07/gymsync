@@ -471,6 +471,9 @@ async function loadAdminQRToken(forceRotate = false) {
         const urlTextEl = document.getElementById('qr-url-text');
         if (urlTextEl) urlTextEl.textContent = scanUrl;
 
+        const otpDisplay = document.getElementById('admin-otp-display');
+        if (otpDisplay) otpDisplay.textContent = data.token;
+
         // Render QR Code using QRCode library with guaranteed fallback
         const container = document.getElementById('admin-qr-container');
         if (container) {

@@ -253,6 +253,114 @@ function setupWorkoutPills() {
     });
 }
 
+// ── HTML5 Camera QR Scanner & Check-In ────────────────────
+
+let html5QrCodeScanner = null;
+let pendingWorkoutType = null;
+
+function openQRScannerModal(workoutType) {
+    pendingWorkoutType = workoutType;
+    const modal = document.getElementById('qr-scanner-modal');
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+
+    document.getElementById('close-scanner-btn')?.addEventListener('click', closeQRScannerModal);
+    document.getElementById('submit-manual-token-btn')?.addEventListener('click', handleManualTokenSubmit);
+
+    // Start live camera scanner
+    if (window.Html5Qrcode) {
+        try {
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.stop().catch(() => {});
+            }
+            html5QrCodeScanner = new Html5Qrcode("qr-reader");
+            html5QrCodeScanner.start(
+                { facingMode: "environment" }, // Rear camera on mobile phone
+                { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    // Scanned token detected!
+                    stopAndProcessToken(decodedText);
+                },
+                (err) => {}
+            ).catch(err => {
+                console.warn("Camera scanner start note:", err);
+                showToast("Camera permission required or camera unavailable. You can enter the 12-char OTP token manually below.", "warning");
+            });
+        } catch (e) {
+            console.error("Html5Qrcode init error:", e);
+        }
+    }
+}
+
+function stopAndProcessToken(scannedText) {
+    let token = scannedText.trim();
+    if (token.includes('token=')) {
+        try {
+            const u = new URL(token);
+            token = u.searchParams.get('token') || token;
+        } catch (e) {
+            const match = token.match(/token=([a-zA-Z0-9]+)/);
+            if (match) token = match[1];
+        }
+    }
+
+    if (html5QrCodeScanner) {
+        html5QrCodeScanner.stop().then(() => {
+            html5QrCodeScanner = null;
+            closeQRScannerModal();
+            executeQRCheckIn(token, pendingWorkoutType);
+        }).catch(() => {
+            closeQRScannerModal();
+            executeQRCheckIn(token, pendingWorkoutType);
+        });
+    } else {
+        closeQRScannerModal();
+        executeQRCheckIn(token, pendingWorkoutType);
+    }
+}
+
+function handleManualTokenSubmit() {
+    const input = document.getElementById('manual-token-input');
+    const token = input ? input.value.trim() : '';
+    if (!token) {
+        showToast('Please enter the 12-character Entrance OTP Token', 'error');
+        return;
+    }
+    stopAndProcessToken(token);
+}
+
+function closeQRScannerModal() {
+    if (html5QrCodeScanner) {
+        html5QrCodeScanner.stop().catch(() => {});
+        html5QrCodeScanner = null;
+    }
+    const modal = document.getElementById('qr-scanner-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function executeQRCheckIn(qrToken, workoutType) {
+    const btn = document.getElementById('checkin-btn');
+    setButtonLoading(btn, true);
+
+    try {
+        const session = await apiRequest('/api/check-in', {
+            method: 'POST',
+            body: JSON.stringify({ workout_type: workoutType, qr_token: qrToken }),
+        });
+
+        sessionStorage.setItem('active_qr_token', qrToken);
+        activeSession = session;
+        showCheckoutUI();
+        showToast(`Checked in! Training ${workoutType}`, 'success');
+        loadOccupancy();
+    } catch (err) {
+        showToast(err.message || 'Entrance QR validation failed', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+
 async function handleCheckIn() {
     const selected = document.querySelector('.workout-pill.active');
     if (!selected) {
@@ -271,31 +379,15 @@ async function handleCheckIn() {
         workoutType = val;
     }
 
-    // Retrieve active entrance QR token scanned by student
+    // Retrieve active entrance QR token scanned by student if already present
     const urlParams = new URLSearchParams(window.location.search);
     const qrToken = urlParams.get('token') || sessionStorage.getItem('active_qr_token') || sessionStorage.getItem('pending_qr_token');
 
-    if (!qrToken) {
-        showToast('📱 Entrance QR Scan Required. Please scan the dynamic QR code displayed at the gym entrance to check in.', 'error', 6000);
-        return;
-    }
-
-    const btn = document.getElementById('checkin-btn');
-    setButtonLoading(btn, true);
-
-    try {
-        const session = await apiRequest('/api/check-in', {
-            method: 'POST',
-            body: JSON.stringify({ workout_type: workoutType, qr_token: qrToken }),
-        });
-        activeSession = session;
-        showCheckoutUI();
-        showToast(`Checked in! Training ${workoutType}`, 'success');
-        loadOccupancy(); // Refresh occupancy
-    } catch (err) {
-        showToast(err.message || 'Check-in failed', 'error');
-    } finally {
-        setButtonLoading(btn, false);
+    if (qrToken) {
+        executeQRCheckIn(qrToken, workoutType);
+    } else {
+        // Open live camera scanner modal automatically on phone!
+        openQRScannerModal(workoutType);
     }
 }
 
