@@ -75,12 +75,22 @@ function setupSidebarNav() {
             showSection(section);
         });
     });
+
+    // Check URL hash on load (e.g. admin.html#qr-code)
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(`section-${hash}`)) {
+        showSection(hash);
+    }
 }
 
 function showSection(section) {
     const sections = document.querySelectorAll('.admin-section');
     sections.forEach(s => {
-        s.style.display = s.id === `section-${section}` ? 'block' : 'none';
+        if (s.id === `section-${section}`) {
+            s.style.display = 'block';
+        } else {
+            s.style.display = 'none';
+        }
     });
 
     const allLinks = document.querySelectorAll('.sidebar-link[data-section], .admin-mobile-link[data-section]');
@@ -94,7 +104,11 @@ function showSection(section) {
 
     currentAdminSection = section;
     if (section === 'qr-code') {
-        loadAdminQRToken();
+        try {
+            loadAdminQRToken();
+        } catch (e) {
+            console.error('loadAdminQRToken error in showSection:', e);
+        }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
