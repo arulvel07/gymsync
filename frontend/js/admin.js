@@ -28,8 +28,20 @@ async function initAdmin() {
         return;
     }
 
-    // Load all admin data
-    await Promise.all([
+    // Setup sidebar & mobile navigation FIRST so clicks always work instantly
+    setupSidebarNav();
+
+    // Setup event listeners FIRST
+    document.getElementById('config-form')?.addEventListener('submit', handleUpdateConfig);
+    document.getElementById('export-csv-btn')?.addEventListener('click', handleExportCSV);
+    document.getElementById('rotate-qr-btn')?.addEventListener('click', () => loadAdminQRToken(true));
+    document.getElementById('attendance-search')?.addEventListener('input', debounce(handleAttendanceSearch, 300));
+    document.getElementById('date-from')?.addEventListener('change', () => loadAttendanceLog());
+    document.getElementById('date-to')?.addEventListener('change', () => loadAttendanceLog());
+    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+
+    // Load admin data asynchronously with failure isolation
+    Promise.allSettled([
         loadAdminSummary(),
         loadAdminOccupancy(),
         loadAttendanceLog(),
@@ -39,18 +51,6 @@ async function initAdmin() {
         loadGymConfig(),
         loadAdminQRToken(),
     ]);
-
-    // Setup sidebar & mobile navigation
-    setupSidebarNav();
-
-    // Setup event listeners
-    document.getElementById('config-form')?.addEventListener('submit', handleUpdateConfig);
-    document.getElementById('export-csv-btn')?.addEventListener('click', handleExportCSV);
-    document.getElementById('rotate-qr-btn')?.addEventListener('click', () => loadAdminQRToken(true));
-    document.getElementById('attendance-search')?.addEventListener('input', debounce(handleAttendanceSearch, 300));
-    document.getElementById('date-from')?.addEventListener('change', () => loadAttendanceLog());
-    document.getElementById('date-to')?.addEventListener('change', () => loadAttendanceLog());
-    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
 
     // Auto-refresh every 60 seconds
     setInterval(() => {
@@ -466,68 +466,59 @@ async function loadAdminQRToken(forceRotate = false) {
         const supabase = window.SUPABASE_CLIENT;
         const now = new Date();
 
-        // 1. Check Supabase table directly via client JS
+        // 1. If not force rotate, query Supabase for latest active token
         if (!forceRotate && supabase) {
             try {
-                const { data: dbTokens } = await supabase
+                const { data: dbTokens, error: selErr } = await supabase
                     .from('qr_tokens')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(1);
 
+                if (selErr) console.warn('Supabase select note:', selErr);
+
                 if (dbTokens && dbTokens.length > 0) {
                     const latest = dbTokens[0];
                     const expTime = new Date(latest.expires_at.replace("Z", "+00:00")).getTime();
-                    const remMs = expTime - Date.now();
-                    if (remMs > 10000) {
+                    if (expTime - Date.now() > 15000) {
                         token = latest.token;
                         expiresAtIso = latest.expires_at;
                     }
                 }
             } catch (e) {
-                console.warn('Supabase client select note:', e);
+                console.warn('Supabase token query note:', e);
             }
         }
 
-        // 2. If no valid token from DB client, try backend API
-        if (!token) {
-            try {
-                const endpoint = forceRotate ? '/api/admin/qr-token/rotate' : '/api/admin/qr-token';
-                const method = forceRotate ? 'POST' : 'GET';
-                const apiData = await apiRequest(endpoint, { method });
-                if (apiData && apiData.token) {
-                    token = apiData.token;
-                    expiresAtIso = apiData.expires_at;
-                }
-            } catch (e) {
-                console.warn('Backend API qr-token note:', e);
-            }
-        }
-
-        // 3. Fallback: Generate token directly in JS and insert into Supabase!
+        // 2. Generate new 12-char hex token if needed or requested
         if (!token) {
             const rawBytes = new Uint8Array(6);
             window.crypto.getRandomValues(rawBytes);
             token = Array.from(rawBytes, b => b.toString(16).padStart(2, '0')).join('');
+            
             const expiresDate = new Date(Date.now() + 7 * 60 * 1000);
             expiresAtIso = expiresDate.toISOString();
 
+            // Insert new token into Supabase table
             if (supabase) {
                 try {
-                    await supabase.from('qr_tokens').insert({
+                    const { error: insErr } = await supabase.from('qr_tokens').insert([{
                         token: token,
                         created_at: now.toISOString(),
                         expires_at: expiresAtIso,
-                    });
+                    }]);
+                    if (insErr) {
+                        console.warn('Supabase insert note:', insErr);
+                    }
                 } catch (dbErr) {
-                    console.warn('Direct Supabase insert note:', dbErr);
+                    console.warn('Supabase insert exception:', dbErr);
                 }
             }
         }
 
         if (!token) return;
 
-        // Build target scan URL for students
+        // 3. Render URL, OTP code, and QR Image
         const scanUrl = window.location.origin + '/check-in.html?token=' + token;
 
         const urlTextEl = document.getElementById('qr-url-text');
@@ -536,7 +527,6 @@ async function loadAdminQRToken(forceRotate = false) {
         const otpDisplay = document.getElementById('admin-otp-display');
         if (otpDisplay) otpDisplay.textContent = token;
 
-        // Render high-res crisp QR Code image
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
@@ -544,10 +534,9 @@ async function loadAdminQRToken(forceRotate = false) {
             container.innerHTML = `<img src="${qrImageUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />`;
         }
 
-        // Expiration calculation & start 7-minute countdown
+        // Start countdown
         const expiresDate = new Date(expiresAtIso.replace("Z", "+00:00"));
         qrExpiresAtMs = expiresDate.getTime();
-
         startQRCountdown();
     } catch (err) {
         console.error('Failed to load admin QR token:', err);
