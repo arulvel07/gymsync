@@ -474,29 +474,13 @@ async function loadAdminQRToken(forceRotate = false) {
         const otpDisplay = document.getElementById('admin-otp-display');
         if (otpDisplay) otpDisplay.textContent = data.token;
 
-        // Render QR Code using QRCode library with guaranteed fallback
+        // Render Python-generated QR Code image
         const container = document.getElementById('admin-qr-container');
         if (container) {
             container.innerHTML = '';
-            let rendered = false;
-
-            if (window.QRCode) {
-                try {
-                    new QRCode(container, {
-                        text: scanUrl,
-                        width: 260,
-                        height: 260,
-                        colorDark: '#0f172a',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.H,
-                    });
-                    rendered = true;
-                } catch (e) {
-                    console.warn('QRCode JS render error, using fallback:', e);
-                }
-            }
-
-            if (!rendered) {
+            if (data.qr_image) {
+                container.innerHTML = `<img src="${data.qr_image}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`;
+            } else {
                 const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(scanUrl)}`;
                 container.innerHTML = `<img src="${fallbackUrl}" alt="Entrance Check-In QR Code" style="width:260px; height:260px; border-radius: 8px; display: block; margin: 0 auto;" />`;
             }

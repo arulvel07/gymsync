@@ -17,6 +17,7 @@ class QRTokenResponse(BaseModel):
     created_at: str
     expires_at: str
     valid_seconds: int
+    qr_image: Optional[str] = None
 
 
 class QRValidationResponse(BaseModel):

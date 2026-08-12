@@ -1,21 +1,75 @@
 import secrets
+import io
+import base64
+import urllib.parse
 from fastapi import APIRouter, Depends, Query, HTTPException
 from datetime import datetime, timedelta, timezone
 from app.auth import require_admin
 from app.database import get_supabase
 from app.models import UpdateConfigRequest, SessionResponse, QRTokenResponse
 
+try:
+    import qrcode
+    from qrcode.image.svg import SvgImage
+    HAS_QRCODE_LIB = True
+except ImportError:
+    HAS_QRCODE_LIB = False
+
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-# Global in-memory cache for fast QR token access & rotation
+# Global in-memory fallback cache
 _CURRENT_QR_TOKEN: dict | None = None
 
 
+def generate_python_qr_image(text: str) -> str:
+    """Generate high-res SVG QR code image directly in Python."""
+    if HAS_QRCODE_LIB:
+        try:
+            factory = SvgImage
+            img = qrcode.make(text, image_factory=factory)
+            stream = io.BytesIO()
+            img.save(stream)
+            svg_bytes = stream.getvalue()
+            encoded = base64.b64encode(svg_bytes).decode('utf-8')
+            return f"data:image/svg+xml;base64,{encoded}"
+        except Exception as e:
+            print(f"Python qrcode render note: {e}")
+
+    return f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data={urllib.parse.quote(text)}"
+
+
 def get_or_create_qr_token(force_new: bool = False) -> dict:
-    """Get active 7-minute QR token or generate a new token."""
+    """Get active 7-minute QR token from Supabase or generate a new token."""
     global _CURRENT_QR_TOKEN
     now = datetime.now(timezone.utc)
+    db = get_supabase()
 
+    # 1. Try querying latest token from Supabase qr_tokens table
+    if not force_new:
+        try:
+            res = db.table("qr_tokens").select("*").order("created_at", desc=True).limit(1).execute()
+            if res.data:
+                latest = res.data[0]
+                expires = datetime.fromisoformat(latest["expires_at"].replace("Z", "+00:00"))
+                remaining = int((expires - now).total_seconds())
+
+                if remaining > 10:
+                    scan_url = f"http://localhost:5500/check-in.html?token={latest['token']}"
+                    qr_img = generate_python_qr_image(scan_url)
+
+                    token_info = {
+                        "token": latest["token"],
+                        "created_at": latest["created_at"],
+                        "expires_at": latest["expires_at"],
+                        "valid_seconds": remaining,
+                        "qr_image": qr_img,
+                    }
+                    _CURRENT_QR_TOKEN = token_info
+                    return token_info
+        except Exception as e:
+            print(f"Supabase qr_tokens select note: {e}")
+
+    # Fallback to in-memory check if table not created yet
     if not force_new and _CURRENT_QR_TOKEN:
         try:
             expires = datetime.fromisoformat(_CURRENT_QR_TOKEN["expires_at"].replace("Z", "+00:00"))
@@ -26,30 +80,32 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
         except Exception:
             pass
 
-    # Generate secure 12-char hex token
+    # Generate new secure 12-char hex token
     token = secrets.token_hex(6)
     created_at = now.isoformat()
     expires_at = (now + timedelta(minutes=7)).isoformat()
+    scan_url = f"http://localhost:5500/check-in.html?token={token}"
+    qr_img = generate_python_qr_image(scan_url)
 
     token_data = {
         "token": token,
         "created_at": created_at,
         "expires_at": expires_at,
         "valid_seconds": 420,
+        "qr_image": qr_img,
     }
 
     _CURRENT_QR_TOKEN = token_data
 
-    # Persist to database if qr_tokens table exists
+    # Save to Supabase table
     try:
-        db = get_supabase()
         db.table("qr_tokens").insert({
             "token": token,
             "created_at": created_at,
             "expires_at": expires_at,
         }).execute()
     except Exception as e:
-        print(f"QR token DB insert note: {e}")
+        print(f"Supabase qr_tokens insert note: {e}")
 
     return token_data
 
