@@ -33,8 +33,10 @@ class CheckOutRequest(BaseModel):
 
 class UpdateConfigRequest(BaseModel):
     max_capacity: Optional[int] = None
-    open_time: Optional[str] = None   # "HH:MM"
-    close_time: Optional[str] = None  # "HH:MM"
+    open_time: Optional[str] = None     # "HH:MM"
+    close_time: Optional[str] = None    # "HH:MM"
+    open_time_2: Optional[str] = None   # "HH:MM"
+    close_time_2: Optional[str] = None  # "HH:MM"
     is_open: Optional[bool] = None
 
 

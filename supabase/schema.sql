@@ -31,15 +31,17 @@ CREATE TABLE IF NOT EXISTS public.gym_sessions (
 CREATE TABLE IF NOT EXISTS public.gym_config (
     id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     max_capacity INT NOT NULL DEFAULT 50,
-    open_time TIME NOT NULL DEFAULT '06:00:00',
-    close_time TIME NOT NULL DEFAULT '22:00:00',
+    open_time TIME NOT NULL DEFAULT '05:00:00',
+    close_time TIME NOT NULL DEFAULT '09:00:00',
+    open_time_2 TIME NOT NULL DEFAULT '17:00:00',
+    close_time_2 TIME NOT NULL DEFAULT '22:00:00',
     is_open BOOLEAN NOT NULL DEFAULT true,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Insert default config
-INSERT INTO public.gym_config (id, max_capacity, open_time, close_time, is_open)
-VALUES (1, 50, '06:00:00', '22:00:00', true)
+INSERT INTO public.gym_config (id, max_capacity, open_time, close_time, open_time_2, close_time_2, is_open)
+VALUES (1, 50, '05:00:00', '09:00:00', '17:00:00', '22:00:00', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. WORKOUT PLANS TABLE

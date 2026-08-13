@@ -223,6 +223,10 @@ async def update_config(
         updates["open_time"] = body.open_time
     if body.close_time is not None:
         updates["close_time"] = body.close_time
+    if body.open_time_2 is not None:
+        updates["open_time_2"] = body.open_time_2
+    if body.close_time_2 is not None:
+        updates["close_time_2"] = body.close_time_2
     if body.is_open is not None:
         updates["is_open"] = body.is_open
 

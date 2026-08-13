@@ -203,8 +203,10 @@ async function checkGymOperationalStatus() {
         const { data: cfg } = await supabase.from('gym_config').select('*').eq('id', 1).single();
         if (cfg) {
             const isOpenToggle = cfg.is_open !== false;
-            const openTime = cfg.open_time || '06:00';
-            const closeTime = cfg.close_time || '22:00';
+            const openTime = cfg.open_time || '05:00';
+            const closeTime = cfg.close_time || '09:00';
+            const openTime2 = cfg.open_time_2 || '17:00';
+            const closeTime2 = cfg.close_time_2 || '22:00';
 
             const now = new Date();
             const istMs = now.getTime() + (5 * 60 + 30) * 60000;
@@ -213,17 +215,26 @@ async function checkGymOperationalStatus() {
             const mins = String(istDate.getUTCMinutes()).padStart(2, '0');
             const currentISTStr = `${hours}:${mins}`;
 
-            let withinHours = true;
+            let withinShift1 = true;
             if (openTime <= closeTime) {
-                withinHours = (currentISTStr >= openTime && currentISTStr <= closeTime);
+                withinShift1 = (currentISTStr >= openTime && currentISTStr <= closeTime);
             } else {
-                withinHours = (currentISTStr >= openTime || currentISTStr <= closeTime);
+                withinShift1 = (currentISTStr >= openTime || currentISTStr <= closeTime);
             }
+
+            let withinShift2 = true;
+            if (openTime2 <= closeTime2) {
+                withinShift2 = (currentISTStr >= openTime2 && currentISTStr <= closeTime2);
+            } else {
+                withinShift2 = (currentISTStr >= openTime2 || currentISTStr <= closeTime2);
+            }
+
+            const withinHours = withinShift1 || withinShift2;
 
             if (!isOpenToggle || !withinHours) {
                 return {
                     isOpen: false,
-                    reason: !isOpenToggle ? 'Gym is currently closed by administration.' : `Gym is currently closed. Operating hours are ${openTime} - ${closeTime}.`
+                    reason: !isOpenToggle ? 'Gym is currently closed by administration.' : `Gym is currently closed. Operating hours are ${openTime}-${closeTime} and ${openTime2}-${closeTime2}.`
                 };
             }
         }

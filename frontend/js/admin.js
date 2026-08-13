@@ -411,8 +411,10 @@ async function loadGymConfig() {
     try {
         const config = await apiRequest('/api/admin/config');
         document.getElementById('config-capacity').value = config.max_capacity;
-        document.getElementById('config-open-time').value = config.open_time?.substring(0, 5) || '06:00';
-        document.getElementById('config-close-time').value = config.close_time?.substring(0, 5) || '22:00';
+        document.getElementById('config-open-time').value = config.open_time?.substring(0, 5) || '05:00';
+        document.getElementById('config-close-time').value = config.close_time?.substring(0, 5) || '09:00';
+        document.getElementById('config-open-time-2').value = config.open_time_2?.substring(0, 5) || '17:00';
+        document.getElementById('config-close-time-2').value = config.close_time_2?.substring(0, 5) || '22:00';
         document.getElementById('config-is-open').checked = config.is_open;
     } catch (err) {
         console.error('Failed to load config:', err);
@@ -429,6 +431,8 @@ async function handleUpdateConfig(e) {
             max_capacity: parseInt(document.getElementById('config-capacity').value),
             open_time: document.getElementById('config-open-time').value,
             close_time: document.getElementById('config-close-time').value,
+            open_time_2: document.getElementById('config-open-time-2').value,
+            close_time_2: document.getElementById('config-close-time-2').value,
             is_open: document.getElementById('config-is-open').checked,
         };
 
@@ -499,8 +503,10 @@ async function loadAdminQRToken(forceRotate = false) {
                 const { data: cfg } = await supabase.from('gym_config').select('*').eq('id', 1).single();
                 if (cfg) {
                     const isOpenToggle = cfg.is_open !== false;
-                    const openTime = cfg.open_time || '06:00';
-                    const closeTime = cfg.close_time || '22:00';
+                    const openTime = cfg.open_time || '05:00';
+                    const closeTime = cfg.close_time || '09:00';
+                    const openTime2 = cfg.open_time_2 || '17:00';
+                    const closeTime2 = cfg.close_time_2 || '22:00';
 
                     // Current IST time HH:MM
                     const now = new Date();
@@ -510,17 +516,26 @@ async function loadAdminQRToken(forceRotate = false) {
                     const mins = String(istDate.getUTCMinutes()).padStart(2, '0');
                     const currentISTStr = `${hours}:${mins}`;
 
-                    let withinHours = true;
+                    let withinShift1 = true;
                     if (openTime <= closeTime) {
-                        withinHours = (currentISTStr >= openTime && currentISTStr <= closeTime);
+                        withinShift1 = (currentISTStr >= openTime && currentISTStr <= closeTime);
                     } else {
-                        withinHours = (currentISTStr >= openTime || currentISTStr <= closeTime);
+                        withinShift1 = (currentISTStr >= openTime || currentISTStr <= closeTime);
                     }
+
+                    let withinShift2 = true;
+                    if (openTime2 <= closeTime2) {
+                        withinShift2 = (currentISTStr >= openTime2 && currentISTStr <= closeTime2);
+                    } else {
+                        withinShift2 = (currentISTStr >= openTime2 || currentISTStr <= closeTime2);
+                    }
+
+                    const withinHours = withinShift1 || withinShift2;
 
                     if (!isOpenToggle || !withinHours) {
                         const container = document.getElementById('admin-qr-container');
                         if (container) {
-                            const reason = !isOpenToggle ? 'Operational status is set to OFF in Facility Config.' : `Outside operating hours (${openTime} - ${closeTime}).`;
+                            const reason = !isOpenToggle ? 'Operational status is set to OFF in Facility Config.' : `Outside operating hours (${openTime}-${closeTime} and ${openTime2}-${closeTime2}).`;
                             container.innerHTML = `
                                 <div style="text-align: center; padding: 20px;">
                                     <div style="font-size: 2.5rem; margin-bottom: 8px;">🔒</div>

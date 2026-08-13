@@ -76,23 +76,39 @@ def check_facility_open_status(db) -> tuple[bool, str]:
 
         cfg = res.data
         is_open_toggle = cfg.get("is_open", True)
-        open_time = cfg.get("open_time", "06:00")
-        close_time = cfg.get("close_time", "22:00")
+        open_time = cfg.get("open_time", "05:00")
+        close_time = cfg.get("close_time", "09:00")
+        open_time_2 = cfg.get("open_time_2", "17:00")
+        close_time_2 = cfg.get("close_time_2", "22:00")
+
+        # Strip seconds if database returns HH:MM:SS format
+        if open_time and len(open_time) > 5: open_time = open_time[:5]
+        if close_time and len(close_time) > 5: close_time = close_time[:5]
+        if open_time_2 and len(open_time_2) > 5: open_time_2 = open_time_2[:5]
+        if close_time_2 and len(close_time_2) > 5: close_time_2 = close_time_2[:5]
 
         # 1. Manual toggle is OFF
         if not is_open_toggle:
             auto_checkout_all_active_sessions(db)
             return False, "Gym is currently closed by administration."
 
-        # 2. Operational hours comparison in IST
+        # 2. Operational hours comparison in IST (Shift 1)
         if open_time <= close_time:
-            within_hours = (open_time <= current_time_str <= close_time)
+            within_shift_1 = (open_time <= current_time_str <= close_time)
         else:
-            within_hours = (current_time_str >= open_time or current_time_str <= close_time)
+            within_shift_1 = (current_time_str >= open_time or current_time_str <= close_time)
+
+        # 3. Operational hours comparison in IST (Shift 2)
+        if open_time_2 <= close_time_2:
+            within_shift_2 = (open_time_2 <= current_time_str <= close_time_2)
+        else:
+            within_shift_2 = (current_time_str >= open_time_2 or current_time_str <= close_time_2)
+
+        within_hours = within_shift_1 or within_shift_2
 
         if not within_hours:
             auto_checkout_all_active_sessions(db)
-            return False, f"Gym is currently closed. Operating hours: {open_time} - {close_time}."
+            return False, f"Gym is currently closed. Operating hours: {open_time}-{close_time} and {open_time_2}-{close_time_2}."
 
         return True, "Open"
     except Exception as e:
