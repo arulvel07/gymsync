@@ -16,3 +16,8 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Frontend
+node_modules/
+dist/
+.env
