@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Control Panel — IIITDM CampusGym Management System">
+    <title>Admin Command Center — IIITDM CampusGym</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css?v=1.2.0">
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body>
+
+    <!-- ─── Minimalist Admin Navbar ──────────────────────────── -->
+    <nav class="navbar" style="border-bottom: 1px solid var(--border-subtle); background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="11" width="20" height="2.5" rx="1" fill="#3b82f6" />
+                <rect x="4" y="6" width="3.5" height="12" rx="1" fill="#6366f1" />
+                <rect x="16.5" y="6" width="3.5" height="12" rx="1" fill="#6366f1" />
+                <circle cx="2" cy="8" r="2" fill="#3b82f6" />
+                <circle cx="22" cy="8" r="2" fill="#3b82f6" />
+                <circle cx="2" cy="16" r="2" fill="#3b82f6" />
+                <circle cx="22" cy="16" r="2" fill="#3b82f6" />
+            </svg>
+            <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">IIITDM Admin</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="admin-name" style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Administrator</div>
+            <button id="logout-btn" class="btn-secondary logout-btn" title="Logout" style="padding: 6px 12px; font-size: 0.78rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span class="logout-text">Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ─── Admin Layout ────────────────────────────── -->
+    <div class="admin-layout">
+
+        <!-- Executive Sidebar Navigation (Desktop) -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-label">Command Modules</div>
+            <a href="#" class="sidebar-link active" data-section="overview">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Executive Overview
+            </a>
+            <a href="#" class="sidebar-link" data-section="attendance">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+                Attendance Logs
+            </a>
+            <a href="#" class="sidebar-link" data-section="analytics">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 20V10"></path>
+                    <path d="M12 20V4"></path>
+                    <path d="M6 20v-6"></path>
+                </svg>
+                Analytics & Trends
+            </a>
+            <a href="#" class="sidebar-link" data-section="settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z"></path>
+                </svg>
+                Facility Config
+            </a>
+            <a href="#" class="sidebar-link" data-section="qr-code">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <path d="M14 14h3v3h-3z"></path>
+                    <path d="M18 18h3v3h-3z"></path>
+                    <path d="M14 18h3v3h-3z"></path>
+                </svg>
+                Dynamic QR Check-In
+            </a>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="admin-content">
+
+            <!-- Mobile Subnav Bar -->
+            <div class="admin-mobile-subnav">
+                <a href="#" class="admin-mobile-link active" data-section="overview">Overview</a>
+                <a href="#" class="admin-mobile-link" data-section="attendance">Attendance</a>
+                <a href="#" class="admin-mobile-link" data-section="analytics">Analytics</a>
+                <a href="#" class="admin-mobile-link" data-section="settings">Facility Config</a>
+                <a href="#" class="admin-mobile-link" data-section="qr-code">Dynamic QR</a>
+            </div>
+
+            <!-- ── Section 1: Overview Command Center ──────────── -->
+            <div id="section-overview" class="admin-section">
+                
+                <!-- Section Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); font-weight: 700; margin-bottom: 4px;">Telemetry & Control</div>
+                        <h1 class="gradient-text" style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">Executive Command Center</h1>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Real-time facility load, student attendance, and capacity telemetry.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="loadAdminSummary(); loadAdminOccupancy(); showToast('Telemetry refreshed', 'info');" class="btn-secondary" style="padding: 8px 14px; font-size: 0.82rem;">
+                            🔄 Refresh Telemetry
+                        </button>
+                        <button onclick="handleExportCSV()" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem;">
+                            📥 Export CSV Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hero Live Telemetry Grid -->
+                <div class="admin-telemetry-grid">
+                    
+                    <!-- Left: Live Occupancy Banner -->
+                    <div class="glass-card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div>
+                                <span class="badge badge-green" id="admin-status-badge">● Operational</span>
+                                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-top: 8px;">Current Gym Headcount</div>
+                                <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px;">
+                                    <span id="admin-occupancy-count" class="stat-number" style="font-size: 3.2rem; line-height: 1; color: var(--accent-emerald);">0</span>
+                                    <span id="admin-occupancy-max" style="font-size: 1.1rem; color: var(--text-muted); font-weight: 500;">/ 50 Max Capacity</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600;">Capacity Load</div>
+                                <span id="admin-occupancy-pct" class="stat-number" style="font-size: 2rem; color: var(--accent-emerald);">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Capacity Bar -->
+                        <div>
+                            <div style="height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                                <div id="admin-occupancy-bar" style="height: 100%; width: 0%; background: var(--accent-emerald); transition: width 0.4s ease, background 0.4s ease;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                                <span>0 Headcount</span>
+                                <span id="admin-capacity-label">Plentiful Space</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Quick Facility Status & Quick Controls -->
+                    <div class="glass-card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 12px;">Quick Operations</div>
+                            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 12px;">Facility Control Center</h3>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+                                Manage current gym availability status or change capacity parameters instantly.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <a href="#" onclick="showSection('settings'); return false;" class="btn-secondary" style="flex: 1; text-align: center; justify-content: center; padding: 10px;">
+                                ⚙️ Modify Configuration
+                            </a>
+                            <a href="#" onclick="showSection('attendance'); return false;" class="btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 10px;">
+                                📋 Audit Log
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 KPI Metric Cards Grid -->
+                <div class="admin-kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>Today's Visits</span>
+                            <span>📅</span>
+                        </div>
+                        <div id="stat-today" class="kpi-value" style="color: var(--accent-blue);">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>This Week</span>
+                            <span>📊</span>
+                        </div>
+                        <div id="stat-week" class="kpi-value" style="color: var(--accent-cyan);">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>This Month</span>
+                            <span>📈</span>
+                        </div>
+                        <div id="stat-month" class="kpi-value" style="color: var(--accent-indigo);">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>Avg Duration</span>
+                            <span>⏱️</span>
+                        </div>
+                        <div id="stat-avg-duration" class="kpi-value" style="color: var(--accent-emerald);">0m</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>Peak Slot</span>
+                            <span>🔥</span>
+                        </div>
+                        <div id="stat-peak-hour" class="kpi-value" style="color: var(--accent-amber);">—</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">
+                            <span>Unique Students</span>
+                            <span>👥</span>
+                        </div>
+                        <div id="stat-unique-today" class="kpi-value" style="color: var(--accent-rose);">0</div>
+                    </div>
+                </div>
+
+                <!-- Recent Attendance Preview Block -->
+                <div class="glass-card" style="padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <h3 style="font-size: 1.05rem; font-weight: 700;">Live Attendance & Session Activity</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary);">Real-time check-ins and check-outs.</p>
+                        </div>
+                        <button onclick="showSection('attendance')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                            View All Records →
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Workout Focus</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-attendance-tbody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading live activity...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Section 2: Attendance Register & Audit Logs ── -->
+            <div id="section-attendance" class="admin-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); font-weight: 700; margin-bottom: 4px;">Audit & Compliance</div>
+                        <h1 style="font-size: 1.6rem; font-weight: 800;" class="gradient-text">Attendance Register & Audit Logs</h1>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Search, filter, and export full student gym session records.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="attendance-search" class="form-input" placeholder="Search name or roll number..." style="width: 200px; padding: 8px 12px; font-size: 0.82rem;">
+                        <input type="date" id="date-from" class="form-input" style="width: 140px; padding: 8px 12px; font-size: 0.82rem;">
+                        <input type="date" id="date-to" class="form-input" style="width: 140px; padding: 8px 12px; font-size: 0.82rem;">
+                        <button id="export-csv-btn" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem;">
+                            📥 Export CSV Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding: 24px; overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Roll Number</th>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Workout Focus</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-tbody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading attendance records...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── Section 3: Analytics & Charts ──────────── -->
+            <div id="section-analytics" class="admin-section" style="display: none;">
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-indigo); font-weight: 700; margin-bottom: 4px;">Data Visualization</div>
+                    <h1 style="font-size: 1.6rem; font-weight: 800;" class="gradient-text">Analytics & Telemetry Metrics</h1>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">30-day historical trends, peak traffic analysis, and workout distribution.</p>
+                </div>
+
+                <div class="admin-charts-grid">
+                    <!-- Daily Visitors Chart -->
+                    <div class="glass-card" style="padding: 24px;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 16px;">Daily Visitor Headcount (30 Days)</div>
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="daily-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Distribution Chart -->
+                    <div class="glass-card" style="padding: 24px;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 16px;">Hourly Peak Density (30 Day Average)</div>
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="hourly-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workout Distribution Pie Card -->
+                <div class="glass-card" style="padding: 24px; max-width: 540px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 16px;">Workout Focus Share (30 Days)</div>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="workout-pie-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section 4: Facility Config ────────────── -->
+            <div id="section-settings" class="admin-section" style="display: none;">
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-cyan); font-weight: 700; margin-bottom: 4px;">System Parameters</div>
+                    <h1 style="font-size: 1.6rem; font-weight: 800;" class="gradient-text">Facility Configuration</h1>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Manage operational hours, max occupancy limits, and emergency facility open/close controls.</p>
+                </div>
+
+                <div class="glass-card" style="padding: 32px; max-width: 520px;">
+                    <form id="config-form">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="form-label" for="config-capacity" style="font-weight: 600;">Max Rated Capacity</label>
+                            <input type="number" id="config-capacity" class="form-input" min="1" max="500" value="50" style="padding: 10px 14px;">
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Maximum allowed headcount before triggering full capacity warnings.</p>
+                        </div>
+
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Shift 1 (Morning)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="config-open-time" style="font-weight: 600;">Opening Time</label>
+                                <input type="time" id="config-open-time" class="form-input" value="05:00" style="padding: 10px 14px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="config-close-time" style="font-weight: 600;">Closing Time</label>
+                                <input type="time" id="config-close-time" class="form-input" value="09:00" style="padding: 10px 14px;">
+                            </div>
+                        </div>
+
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Shift 2 (Evening)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="config-open-time-2" style="font-weight: 600;">Opening Time</label>
+                                <input type="time" id="config-open-time-2" class="form-input" value="17:00" style="padding: 10px 14px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="config-close-time-2" style="font-weight: 600;">Closing Time</label>
+                                <input type="time" id="config-close-time-2" class="form-input" value="22:00" style="padding: 10px 14px;">
+                            </div>
+                        </div>
+
+                        <div class="glass-card-static" style="padding: 16px; margin-bottom: 24px; background: rgba(255,255,255,0.02);">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">Facility Operational Status</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Toggle to immediately mark gym Open or Closed</div>
+                                </div>
+                                <input type="checkbox" id="config-is-open" checked style="width: 20px; height: 20px; accent-color: var(--accent-emerald); cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600;">
+                            Save Configuration Parameters
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── Section 5: Dynamic QR Check-In ────────── -->
+            <div id="section-qr-code" class="admin-section" style="display: none;">
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-emerald); font-weight: 700; margin-bottom: 4px;">Entrance Telemetry</div>
+                    <h1 style="font-size: 1.6rem; font-weight: 800;" class="gradient-text">Dynamic Entrance QR Check-In</h1>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Display this screen on a monitor or tablet at the gym entrance. Students scan this QR code or enter the 12-char OTP to check in.</p>
+                </div>
+
+                <div class="glass-card" style="padding: 36px; max-width: 620px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <span class="badge badge-green">● Live Check-In Screen</span>
+                        <span class="badge badge-blue">7-Min Token Rotation</span>
+                    </div>
+
+                    <!-- Countdown Display -->
+                    <div style="margin-bottom: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 12px 24px; border-radius: var(--radius-md); width: 100%;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">Dynamic Token Validity</div>
+                        <div id="qr-timer-display" class="stat-number" style="font-size: 2.2rem; color: var(--accent-emerald); font-family: var(--font-mono); font-weight: 700;">
+                            QR expires in: 07:00
+                        </div>
+                    </div>
+
+                    <!-- QR Code Render Box -->
+                    <div style="background: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-flex; justify-content: center; align-items: center; margin-bottom: 20px; min-width: 280px; min-height: 280px;">
+                        <div id="admin-qr-container" style="width: 260px; height: 260px; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #64748b; font-size: 0.85rem;">Generating QR Code...</span>
+                        </div>
+                    </div>
+
+                    <!-- Large OTP Token Display -->
+                    <div style="width: 100%; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); font-weight: 700; margin-bottom: 4px;">Entrance OTP Token</div>
+                        <div id="admin-otp-display" style="font-family: var(--font-mono); font-size: 2rem; font-weight: 800; color: #ffffff; letter-spacing: 0.15em;">
+                            --------
+                        </div>
+                    </div>
+
+                    <!-- Target URL preview & Manual Controls -->
+                    <div style="width: 100%; border-top: 1px solid var(--border-subtle); padding-top: 18px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">Scan Target URL</div>
+                        <div id="qr-url-text" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-blue); word-break: break-all; margin-bottom: 16px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;">
+                            Loading scan URL...
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button id="rotate-qr-btn" class="btn-secondary" style="font-size: 0.85rem; padding: 8px 16px;">
+                                🔄 Generate New Token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Inline Failsafe Navigation Script -->
+    <script>
+        (function() {
+            function bindNav() {
+                const links = document.querySelectorAll('.sidebar-link[data-section], .admin-mobile-link[data-section]');
+                links.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const sec = this.getAttribute('data-section');
+                        const sections = document.querySelectorAll('.admin-section');
+                        sections.forEach(s => {
+                            s.style.display = (s.id === 'section-' + sec) ? 'block' : 'none';
+                        });
+                        links.forEach(l => l.classList.toggle('active', l.getAttribute('data-section') === sec));
+                        if (sec === 'qr-code' && typeof window.loadAdminQRToken === 'function') {
+                            window.loadAdminQRToken();
+                        }
+                    });
+                });
+                
+                // Handle hash link on page load
+                const hash = window.location.hash.replace('#', '');
+                if (hash && document.getElementById('section-' + hash)) {
+                    document.querySelectorAll('.admin-section').forEach(s => {
+                        s.style.display = (s.id === 'section-' + hash) ? 'block' : 'none';
+                    });
+                    links.forEach(l => l.classList.toggle('active', l.getAttribute('data-section') === hash));
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindNav);
+            } else {
+                bindNav();
+            }
+        })();
+    </script>
+
+    <!-- Scripts -->
+    <script src="js/supabase-config.js?v=5.0.0"></script>
+    <script src="js/utils.js?v=5.0.0"></script>
+    <script src="js/admin.js?v=5.0.0"></script>
+</body>
+
+</html>
