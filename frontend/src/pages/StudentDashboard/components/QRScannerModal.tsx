@@ -21,11 +21,13 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 }) => {
   const [manualToken, setManualToken] = useState('');
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isScanningRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
     let html5QrCode: Html5Qrcode | null = null;
+    isScanningRef.current = false;
 
     const timer = setTimeout(() => {
       try {
@@ -36,26 +38,45 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             { facingMode: 'environment' },
             { fps: 10, qrbox: { width: 220, height: 220 } },
             (decodedText) => {
-              let token = decodedText.trim();
-              if (token.includes('token=')) {
-                const match = token.match(/token=([a-zA-Z0-9]+)/);
-                if (match) token = match[1];
-              }
-              
-              if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop()
-                  .catch((err) => console.warn('Stop error:', err))
-                  .finally(() => {
+              try {
+                let token = decodedText.trim();
+                if (token.includes('token=')) {
+                  try {
+                    const urlObj = new URL(token);
+                    const tParam = urlObj.searchParams.get('token');
+                    if (tParam) {
+                      token = tParam;
+                    }
+                  } catch (urlErr) {
+                    const match = token.match(/token=([a-zA-Z0-9]+)/);
+                    if (match) token = match[1];
+                  }
+                }
+
+                setTimeout(() => {
+                  if (html5QrCode && isScanningRef.current) {
+                    isScanningRef.current = false;
+                    html5QrCode.stop()
+                      .catch((err) => console.warn('Stop error:', err))
+                      .finally(() => {
+                        onClose();
+                        onTokenSubmit(token);
+                      });
+                  } else {
                     onClose();
                     onTokenSubmit(token);
-                  });
-              } else {
+                  }
+                }, 50);
+              } catch (callbackErr) {
+                console.error('[Scanner] Callback error:', callbackErr);
                 onClose();
-                onTokenSubmit(token);
               }
             },
             () => {}
           )
+          .then(() => {
+            isScanningRef.current = true;
+          })
           .catch(() => {
             if (onCameraNotice) {
               onCameraNotice(
@@ -71,7 +92,8 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
     return () => {
       clearTimeout(timer);
       if (html5QrCode) {
-        if (html5QrCode.isScanning) {
+        if (isScanningRef.current) {
+          isScanningRef.current = false;
           html5QrCode.stop().catch((err) => console.warn('Cleanup stop error:', err));
         }
       }
