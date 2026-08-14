@@ -4,7 +4,7 @@ import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
-import { formatDate, formatTime, formatDuration } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, parseUTC } from '@/lib/utils';
 import type { GymSession } from '@/types';
 import { Activity, Calendar, Clock, Dumbbell } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
     const currentYear = now.getFullYear();
 
     return history.filter((s) => {
-      const d = new Date(s.check_in.replace('Z', '+00:00'));
+      const d = parseUTC(s.check_in);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     }).length;
   }, [history]);
@@ -40,11 +40,11 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
   }, [history]);
 
   return (
-    <Card className="w-full">
+    <Card id="activity" tabIndex={-1} className="w-full scroll-mt-20 focus:outline-none">
       <CardHeader className="pb-4 border-b border-[#27272a]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-sm uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-400" />
               Personal Activity & History
             </CardTitle>
@@ -97,7 +97,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
           <div>
             {/* Desktop Table View */}
             <div className="hidden md:block">
-              <Table>
+              <Table label="Personal activity history table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
@@ -111,7 +111,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
                   {history.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium text-white flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                        <Calendar className="w-3.5 h-3.5 text-zinc-500" aria-hidden="true" />
                         {formatDate(s.check_in)}
                       </TableCell>
                       <TableCell>{formatTime(s.check_in)}</TableCell>

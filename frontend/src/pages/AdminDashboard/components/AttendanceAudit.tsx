@@ -189,7 +189,7 @@ export const AttendanceAudit: React.FC = () => {
                 placeholder="Name or roll number..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 bg-[#121215] border border-white/10 rounded-md text-xs text-[#fafafa] placeholder-[#71717a] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
+                className="w-full pl-9 pr-8 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] placeholder-[#71717a] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
               />
               {searchInput && (
                 <button
@@ -213,7 +213,7 @@ export const AttendanceAudit: React.FC = () => {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-md text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
             />
           </div>
 
@@ -227,7 +227,7 @@ export const AttendanceAudit: React.FC = () => {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-md text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
             />
           </div>
 
@@ -327,7 +327,7 @@ export const AttendanceAudit: React.FC = () => {
             title={hasActiveFilters ? 'NO ATTENDANCE FOUND' : 'NO ATTENDANCE RECORDS'}
             description={
               hasActiveFilters
-                ? 'No session records matched your search or active filters.'
+                ? 'Try changing your search or filters.'
                 : 'There are no gym session records recorded yet.'
             }
             primaryAction={
@@ -344,19 +344,24 @@ export const AttendanceAudit: React.FC = () => {
           {/* Desktop Table Presentation (Visible on md/lg screens) */}
           <div className="hidden md:block">
             <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Attendance records table"
+                className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#18181c] border-b border-white/10 text-[#71717a] uppercase tracking-wider font-semibold text-[0.68rem]">
-                      <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4">Roll Number</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Check In</th>
-                      <th className="py-3 px-4">Check Out</th>
-                      <th className="py-3 px-4">Workout</th>
-                      <th className="py-3 px-4">Duration</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Action</th>
+                      <th scope="col" className="py-3 px-4">Student</th>
+                      <th scope="col" className="py-3 px-4">Roll Number</th>
+                      <th scope="col" className="py-3 px-4">Date</th>
+                      <th scope="col" className="py-3 px-4">Check In</th>
+                      <th scope="col" className="py-3 px-4">Check Out</th>
+                      <th scope="col" className="py-3 px-4">Workout</th>
+                      <th scope="col" className="py-3 px-4">Duration</th>
+                      <th scope="col" className="py-3 px-4">Status</th>
+                      <th scope="col" className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -415,7 +420,7 @@ export const AttendanceAudit: React.FC = () => {
                                 setSelectedSession(session);
                               }}
                               iconLeft={<Eye className="w-3.5 h-3.5 text-blue-400" />}
-                              aria-label="Inspect session"
+                              aria-label={`Inspect session for ${session.full_name || 'Student'}`}
                             >
                               Inspect
                             </Button>

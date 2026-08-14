@@ -94,9 +94,9 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
       <Card>
         <CardHeader className="pb-3 border-b border-[#27272a]">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+            <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
               <Repeat className="w-3.5 h-3.5 text-blue-400" />
-              Weekly Routine Templates
+              Weekly Routine
             </CardTitle>
             <span className="text-[11px] text-zinc-500 font-normal">Recurring schedule for every week</span>
           </div>

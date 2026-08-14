@@ -14,7 +14,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import type { DailyStat } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { commonCartesianScales, commonTooltipOptions, chartDarkTheme } from './chartConfig';
+import { commonCartesianScales, commonTooltipOptions, chartDarkTheme, commonAnimationOptions } from './chartConfig';
 
 ChartJS.register(
   CategoryScale,
@@ -52,6 +52,7 @@ export const LineChart: React.FC<{ data: DailyStat[] }> = ({ data }) => {
   const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: commonAnimationOptions,
     plugins: {
       legend: { display: false },
       tooltip: commonTooltipOptions,
@@ -60,8 +61,29 @@ export const LineChart: React.FC<{ data: DailyStat[] }> = ({ data }) => {
   };
 
   return (
-    <div className="h-full w-full">
-      <Line data={chartData} options={options} />
+    <div className="h-full w-full relative">
+      <div className="sr-only">
+        <table>
+          <caption>Daily Gym Attendance Trend</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Daily Visitors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.date}>
+                <td>{formatDate(d.date)}</td>
+                <td>{d.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="h-full w-full" aria-hidden="true">
+        <Line data={chartData} options={options} />
+      </div>
     </div>
   );
 };

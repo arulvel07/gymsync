@@ -126,7 +126,7 @@ export const AdminAnalytics: React.FC = () => {
       {error && !loading && (
         <div className="mb-6">
           <ErrorState
-            title="We couldn't load Gym Insights"
+            title="WE COULDN'T LOAD GYM INSIGHTS"
             message={error}
             onRetry={() => loadData(false)}
           />

@@ -57,7 +57,7 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
   return (
     <div className="hidden md:block mb-6">
       <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-3 flex items-center justify-between">
-        <span>YOUR WEEK</span>
+        <span>Your Week</span>
         <span className="text-[11px] text-zinc-500 font-normal">Click any day to schedule or view crowd forecast</span>
       </div>
 
@@ -77,6 +77,8 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
               key={day.dateStr}
               type="button"
               onClick={() => onSelectDate(day.dateStr)}
+              aria-pressed={isSelected}
+              aria-label={`${day.shortName}, ${day.monthName} ${day.dayOfMonth}. ${workoutName ? `Planned workout: ${workoutName} at ${timeSlot !== null ? formatHour(timeSlot) : 'unscheduled time'}` : 'No workout scheduled'}${day.isToday ? ', Today' : ''}`}
               className={`text-left p-3 rounded-xl border transition-all duration-150 relative flex flex-col justify-between min-h-[120px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer ${
                 isSelected
                   ? 'bg-blue-600/15 border-blue-500 shadow-md shadow-blue-900/20 text-white'
@@ -88,7 +90,7 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
               {/* Day Header */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-[11px] font-bold uppercase tracking-wider ${isSelected ? 'text-blue-400' : 'text-zinc-400'}`}>
+                  <span className={`text-[11px] font-bold uppercase tracking-wider ${isSelected ? 'text-blue-400' : 'text-zinc-400'}`} aria-hidden="true">
                     {day.shortName}
                   </span>
                   {day.isToday && (
@@ -98,28 +100,28 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
                   )}
                 </div>
 
-                <div className="text-lg font-bold font-mono tracking-tight text-white mb-2">
+                <div className="text-lg font-bold font-mono tracking-tight text-white mb-2" aria-hidden="true">
                   {day.dayOfMonth} <span className="text-xs font-normal text-zinc-400">{day.monthName}</span>
                 </div>
               </div>
 
               {/* Workout Content */}
-              <div className="mt-auto pt-2 border-t border-white/5">
+              <div className="mt-auto pt-2 border-t border-white/5" aria-hidden="true">
                 {workoutName ? (
                   <div className="space-y-1">
                     <div className="text-xs font-semibold text-white truncate flex items-center gap-1">
-                      <Dumbbell className={`w-3 h-3 shrink-0 ${isSelected ? 'text-blue-400' : 'text-zinc-400'}`} />
+                      <Dumbbell className={`w-3 h-3 shrink-0 ${isSelected ? 'text-blue-400' : 'text-zinc-400'}`} aria-hidden="true" />
                       <span className="truncate">{workoutName}</span>
                     </div>
 
                     <div className="text-[10px] text-zinc-400 flex items-center justify-between">
                       <span className="flex items-center gap-0.5">
-                        <Clock className="w-2.5 h-2.5 text-zinc-500" />
+                        <Clock className="w-2.5 h-2.5 text-zinc-500" aria-hidden="true" />
                         {timeSlot !== null ? formatHour(timeSlot) : '—'}
                       </span>
                       {plan ? (
                         <span className="text-[9px] font-semibold text-emerald-400 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Planned
+                          <CheckCircle2 className="w-2.5 h-2.5" aria-hidden="true" /> Planned
                         </span>
                       ) : isFromTemplate ? (
                         <span className="text-[9px] text-zinc-500 italic">Routine</span>
@@ -128,7 +130,7 @@ export const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
                   </div>
                 ) : (
                   <div className="text-[11px] text-zinc-500 flex items-center gap-1 hover:text-zinc-400 transition-colors">
-                    <Plus className="w-3 h-3 text-zinc-600" />
+                    <Plus className="w-3 h-3 text-zinc-600" aria-hidden="true" />
                     <span>Open</span>
                   </div>
                 )}

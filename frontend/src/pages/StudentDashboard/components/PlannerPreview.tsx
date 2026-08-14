@@ -73,8 +73,8 @@ export const PlannerPreview: React.FC<PlannerPreviewProps> = ({
     <>
       <Card className="h-full flex flex-col justify-between">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-blue-400" />
               Your Next Workout
             </CardTitle>
@@ -118,9 +118,10 @@ export const PlannerPreview: React.FC<PlannerPreviewProps> = ({
                   size="sm"
                   className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 p-1.5 h-auto"
                   title="Remove plan"
+                  aria-label={`Remove workout plan for ${formatDate(nextPlan.planned_date)}`}
                   onClick={() => onDeletePlan(nextPlan.planned_date)}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                 </Button>
               </div>
 
@@ -136,11 +137,11 @@ export const PlannerPreview: React.FC<PlannerPreviewProps> = ({
             <div className="py-4">
               <EmptyState
                 icon={<Calendar className="w-6 h-6 text-zinc-500" />}
-                title="No Upcoming Workout"
-                description="Plan your next session to keep your fitness routine on schedule."
+                title="No upcoming workouts"
+                description="Your schedule is clear. Plan your next session to keep your routine on track."
                 primaryAction={
                   <Button variant="primary" size="sm" onClick={() => setModalOpen(true)}>
-                    Schedule Session
+                    Plan a workout
                   </Button>
                 }
               />

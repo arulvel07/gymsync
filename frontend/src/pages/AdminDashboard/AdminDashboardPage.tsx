@@ -92,9 +92,9 @@ export const AdminDashboardPage: React.FC = () => {
       {section === 'config' && (
         <div className="animate-fade-in-up">
           <div className="mb-6">
-            <div className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-1">System Parameters</div>
-            <h1 className="gradient-text text-2xl font-extrabold">Facility Configuration</h1>
-            <p className="text-xs text-[#a1a1aa]">Manage operational hours, max occupancy limits, and emergency facility open/close controls.</p>
+            <div className="text-xs uppercase tracking-widest text-blue-400 font-semibold mb-1">System Parameters</div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#fafafa] tracking-tight">Facility Configuration</h1>
+            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 leading-relaxed">Manage operational hours, max occupancy limits, and emergency facility open/close controls.</p>
           </div>
 
           <Card className="p-8 max-w-[520px]">
@@ -145,14 +145,17 @@ export const AdminDashboardPage: React.FC = () => {
 
               <div className="p-4 mb-6 bg-white/[0.02] border border-white/10 rounded-lg flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-semibold text-white">Facility Operational Status</div>
+                  <label htmlFor="facility-status-toggle" className="text-xs font-semibold text-white block cursor-pointer">
+                    Facility Operational Status
+                  </label>
                   <div className="text-[0.75rem] text-[#a1a1aa]">Toggle to immediately mark gym Open or Closed</div>
                 </div>
                 <input
+                  id="facility-status-toggle"
                   type="checkbox"
                   checked={isOpen}
                   onChange={(e) => setIsOpen(e.target.checked)}
-                  className="w-5 h-5 accent-emerald-500 cursor-pointer"
+                  className="w-5 h-5 accent-emerald-500 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
                 />
               </div>
 

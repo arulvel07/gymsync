@@ -93,12 +93,13 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 
         <div className="pt-3 border-t border-[#27272a]">
           <form onSubmit={handleManualSubmit} className="space-y-2">
-            <label className="block text-xs text-zinc-400 font-medium flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-zinc-400" />
+            <label htmlFor="manual-otp-input" className="block text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
               Or enter 12-character Entrance OTP Token:
             </label>
             <div className="flex gap-2">
               <Input
+                id="manual-otp-input"
                 placeholder="e.g. 8f92a7c1e43b"
                 className="font-mono lowercase text-xs"
                 value={manualToken}

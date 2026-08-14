@@ -80,7 +80,7 @@ export const AnalyticsSummary: React.FC<AnalyticsSummaryProps> = ({
             <span className="text-[0.7rem] uppercase tracking-wider text-[#a1a1aa] font-semibold truncate">
               {m.label}
             </span>
-            <div className="p-1.5 rounded-md bg-white/[0.04] border border-white/5 flex-shrink-0">
+            <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/5 flex-shrink-0">
               {m.icon}
             </div>
           </div>

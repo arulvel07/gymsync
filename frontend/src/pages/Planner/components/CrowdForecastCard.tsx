@@ -47,14 +47,14 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
     return (
       <Card className="h-full flex flex-col justify-between">
         <CardHeader className="pb-3 border-b border-[#27272a]">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
             When Should You Train?
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <ErrorState
-            title="WE COULDN'T LOAD THE CROWD FORECAST"
+            title="Unable to load crowd forecast"
             message={error}
             onRetry={onRetry}
           />
@@ -67,7 +67,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
     return (
       <Card className="h-full flex flex-col justify-between">
         <CardHeader className="pb-3 border-b border-[#27272a]">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
             When Should You Train?
           </CardTitle>
@@ -75,7 +75,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
         <CardContent className="pt-4">
           <EmptyState
             icon={<AlertTriangle className="w-6 h-6 text-amber-400" />}
-            title="CROWD FORECAST UNAVAILABLE"
+            title="Crowd forecast unavailable"
             description="We don't have enough data for this time yet."
           />
         </CardContent>
@@ -100,9 +100,9 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
     <Card className="h-full flex flex-col justify-between">
       <CardHeader className="pb-3 border-b border-[#27272a]">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
-            WHEN SHOULD YOU TRAIN?
+            When Should You Train?
           </CardTitle>
           <span className="text-xs font-semibold text-blue-400 font-mono">
             {dateContextText}
@@ -114,8 +114,8 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
         {/* Main Forecast Decision Block */}
         <div className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] space-y-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
-              EXPECTED CROWD
+            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">
+              Expected crowd
             </span>
             <Badge
               variant={
@@ -126,7 +126,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
                   : 'red'
               }
             >
-              {level.label.toUpperCase()}
+              {level.label}
             </Badge>
           </div>
 

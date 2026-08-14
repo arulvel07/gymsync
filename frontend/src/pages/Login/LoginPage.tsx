@@ -42,8 +42,8 @@ export const LoginPage: React.FC = () => {
           <div className="mb-3">
             <Badge variant="blue">IIITDM Single Sign-On</Badge>
           </div>
-          <h1 className="text-2xl font-bold gradient-text mb-1.5">Login</h1>
-          <p className="text-xs text-[#a1a1aa]">
+          <h1 className="text-2xl font-extrabold text-[#fafafa] tracking-tight mb-1.5">Sign In</h1>
+          <p className="text-xs text-[#a1a1aa] leading-relaxed">
             Access digital attendance, live occupancy, and smart workout planning.
           </p>
         </div>
@@ -54,9 +54,10 @@ export const LoginPage: React.FC = () => {
             type="button"
             onClick={handleGoogleAuth}
             disabled={submitting}
-            className="w-full py-2.5 px-4 flex items-center justify-center gap-2.5 bg-white text-zinc-900 border border-white/20 rounded font-semibold text-sm cursor-pointer hover:bg-zinc-100 transition-all shadow-sm disabled:opacity-50"
+            aria-busy={submitting ? 'true' : undefined}
+            className="w-full py-2.5 px-4 flex items-center justify-center gap-2.5 bg-white text-zinc-900 border border-white/20 rounded font-semibold text-sm cursor-pointer hover:bg-zinc-100 transition-all shadow-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121215]"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"

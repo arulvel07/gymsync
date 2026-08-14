@@ -29,11 +29,11 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <CalendarIcon className="w-6 h-6 text-blue-400" />
-            Your Plan
+            Workout Planner
           </h1>
         </div>
         <p className="text-xs text-zinc-400 mt-1">
-          Plan your workouts and choose the best time to train.
+          Plan your weekly workouts and choose the best time to train.
         </p>
       </div>
 

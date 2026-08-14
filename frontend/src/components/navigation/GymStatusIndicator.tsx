@@ -63,21 +63,26 @@ export const GymStatusIndicator: React.FC<GymStatusIndicatorProps> = ({ classNam
 
   return (
     <div
-      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+      role="status"
+      aria-label={`Facility status: ${isOpen ? 'Open' : 'Closed'}. ${isOpen ? `${count} of ${max} capacity currently in use.` : 'Facility is closed.'}`}
+      className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full text-xs font-medium border transition-colors shrink-0 ${
         isOpen
           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
           : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
       } ${className}`}
       title={isOpen ? `Gym is Open. ${count} of ${max} capacity currently in use.` : 'Gym is currently Closed.'}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-      <span className="font-semibold text-[0.75rem] tracking-tight">
+      <span
+        className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}
+        aria-hidden="true"
+      />
+      <span className="font-semibold text-[0.72rem] sm:text-[0.75rem] tracking-tight">
         {isOpen ? 'OPEN' : 'CLOSED'}
       </span>
       {isOpen && (
         <>
-          <span className="text-white/20">•</span>
-          <span className="font-mono text-[0.72rem] font-medium text-emerald-300">
+          <span className="text-white/20 hidden xs:inline" aria-hidden="true">•</span>
+          <span className="font-mono text-[0.7rem] sm:text-[0.72rem] font-medium text-emerald-300 hidden xs:inline" aria-hidden="true">
             {count}/{max}
           </span>
         </>

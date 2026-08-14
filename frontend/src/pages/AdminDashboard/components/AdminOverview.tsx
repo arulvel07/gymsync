@@ -99,7 +99,7 @@ export const AdminOverview: React.FC = () => {
     return (
       <div className="py-8">
         <ErrorState
-          title="WE COULDN'T LOAD GYM OVERVIEW"
+          title="Unable to load gym overview"
           message="Your system access is active, but we could not establish a connection to the facility telemetry server."
           onRetry={() => loadTelemetryData(true)}
         />

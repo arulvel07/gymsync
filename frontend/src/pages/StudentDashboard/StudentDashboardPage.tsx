@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { attendanceApi } from '@/services/api/attendance';
 import { plannerApi } from '@/services/api/planner';
 import { useToast } from '@/components/ui/Toast';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { getElapsedTime } from '@/lib/utils';
+import { getElapsedTime, parseUTC } from '@/lib/utils';
 import { MAX_SESSION_MINUTES } from '@/lib/constants';
 import type {
   OccupancyResponse,
@@ -86,20 +86,22 @@ export const StudentDashboardPage: React.FC = () => {
   useEffect(() => {
     if (!activeSession) return;
 
-    const interval = setInterval(() => {
-      const checkInTime = new Date(activeSession.check_in.replace('Z', '+00:00')).getTime();
+    const updateTimer = () => {
+      const checkInTime = parseUTC(activeSession.check_in).getTime();
       const elapsedMinutes = (Date.now() - checkInTime) / 60000;
 
       if (elapsedMinutes >= MAX_SESSION_MINUTES) {
-        clearInterval(interval);
         handleCheckOut(true);
-        showToast(`⏰ Session limit reached (${MAX_SESSION_MINUTES} min). Auto checked out!`, 'info');
+        showToast(`Session limit reached (${MAX_SESSION_MINUTES} min). Auto checked out!`, 'info');
         return;
       }
 
       const elapsed = getElapsedTime(activeSession.check_in);
       setSessionTimer(elapsed.display);
-    }, 1000);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
   }, [activeSession]);
@@ -182,11 +184,28 @@ export const StudentDashboardPage: React.FC = () => {
     }
   };
 
+  // Calculate today's planned workout
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayPlan = useMemo(() => {
+    return plans.find((p) => p.planned_date === todayStr) || null;
+  }, [plans, todayStr]);
+
+  // Handle direct hash navigation e.g. #activity from bottom navigation
+  useEffect(() => {
+    if (window.location.hash === '#activity') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('activity');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
   if (error && !occupancy) {
     return (
       <div className="py-12">
         <ErrorState
-          title="We Couldn't Load Your Gym Dashboard"
+          title="Unable to load gym dashboard"
           message="Your account data is safe. We just couldn't reach the gym server."
           onRetry={() => loadDashboardData(true)}
         />
@@ -223,6 +242,7 @@ export const StudentDashboardPage: React.FC = () => {
               loading={checkInLoading}
               isOpen={isOpen}
               isFull={isFull}
+              todayPlan={todayPlan}
             />
           ) : (
             <ActiveSessionPanel
