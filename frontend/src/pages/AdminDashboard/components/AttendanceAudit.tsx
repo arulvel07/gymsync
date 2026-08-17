@@ -105,27 +105,44 @@ export const AttendanceAudit: React.FC = () => {
     };
   }, [filteredSessions]);
 
-  // Handle CSV Export preserving exact previous dataset and format
+  // Handle CSV Export preserving active filters and backend limit constraint (le=200)
   const handleCSVExport = async () => {
     setExporting(true);
     try {
-      const allSess = await adminApi.getAllSessions(500, 0, debouncedSearch, dateFrom, dateTo);
-      const exportData = allSess.map((s) => ({
+      const allSess = await adminApi.getAllSessions(200, 0, debouncedSearch, dateFrom, dateTo);
+      const filtered = allSess.filter((s) => {
+        if (workoutFilter !== 'all' && s.workout_type !== workoutFilter) return false;
+        if (statusFilter === 'active' && s.check_out !== null) return false;
+        if (statusFilter === 'completed' && s.check_out === null) return false;
+        return true;
+      });
+
+      if (!filtered.length) {
+        showToast('No attendance records found to export', 'warning');
+        return;
+      }
+
+      const exportData = filtered.map((s) => ({
         Name: s.full_name || '',
         'Roll Number': s.roll_number || '',
         'Check In': formatDate(s.check_in) + ' ' + formatTime(s.check_in),
         'Check Out': s.check_out ? formatDate(s.check_out) + ' ' + formatTime(s.check_out) : 'Active',
         'Workout Type': s.workout_type,
-        'Duration (min)': s.duration_minutes || '',
+        'Duration (min)': s.duration_minutes !== null && s.duration_minutes !== undefined ? s.duration_minutes : '',
       }));
-      exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
-      showToast('CSV report exported successfully', 'success');
-    } catch (err) {
-      showToast('Failed to export CSV', 'error');
+
+      const exported = exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
+      if (exported) {
+        showToast(`Exported ${exportData.length} records to CSV`, 'success');
+      }
+    } catch (err: any) {
+      console.error('[Attendance] Error exporting CSV:', err);
+      showToast(err?.message || 'Failed to export CSV', 'error');
     } finally {
       setExporting(false);
     }
   };
+
 
   // Reset all filters
   const handleClearFilters = () => {

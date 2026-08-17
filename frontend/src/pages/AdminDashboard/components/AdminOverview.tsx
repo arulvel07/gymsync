@@ -78,23 +78,30 @@ export const AdminOverview: React.FC = () => {
     setExporting(true);
     try {
       const allSess = await adminApi.getAllSessions(200);
+      if (!allSess.length) {
+        showToast('No attendance records found to export', 'warning');
+        return;
+      }
       const exportData = allSess.map((s) => ({
         Name: s.full_name || '',
         'Roll Number': s.roll_number || '',
         'Check In': formatDate(s.check_in) + ' ' + formatTime(s.check_in),
         'Check Out': s.check_out ? formatDate(s.check_out) + ' ' + formatTime(s.check_out) : 'Active',
         'Workout Type': s.workout_type,
-        'Duration (min)': s.duration_minutes || '',
+        'Duration (min)': s.duration_minutes !== null && s.duration_minutes !== undefined ? s.duration_minutes : '',
       }));
-      exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
-      showToast('Attendance report exported successfully', 'success');
-    } catch (err) {
+      const exported = exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
+      if (exported) {
+        showToast(`Attendance report (${exportData.length} records) exported successfully`, 'success');
+      }
+    } catch (err: any) {
       console.error('[AdminOverview] Error exporting CSV:', err);
-      showToast('Failed to export attendance report', 'error');
+      showToast(err?.message || 'Failed to export attendance report', 'error');
     } finally {
       setExporting(false);
     }
   };
+
 
   if (error && !occupancy && !summary) {
     return (
