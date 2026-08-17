@@ -42,7 +42,7 @@ export const StudentDashboardPage: React.FC = () => {
   const [checkOutLoading, setCheckOutLoading] = useState(false);
 
   // Workout Selection State
-  const [selectedWorkout, setSelectedWorkout] = useState<string>('Chest');
+  const [selectedWorkout, setSelectedWorkout] = useState<string>('Push');
   const [customWorkout, setCustomWorkout] = useState<string>('');
 
   // Scanner Modal

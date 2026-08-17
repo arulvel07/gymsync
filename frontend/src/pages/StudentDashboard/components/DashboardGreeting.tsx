@@ -24,10 +24,10 @@ export const DashboardGreeting: React.FC<DashboardGreetingProps> = ({
   const firstName = fullName ? fullName.split(' ')[0] : 'Student';
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-[#27272a]">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-white/10">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-[#fafafa]">
             {getGreeting()}, {firstName}
           </h1>
           {activeSession && (
@@ -36,7 +36,7 @@ export const DashboardGreeting: React.FC<DashboardGreetingProps> = ({
             </span>
           )}
         </div>
-        <p className="text-xs text-zinc-400 mt-1">
+        <p className="text-xs text-[#a1a1aa] mt-1">
           IIITDM Campus Gym · Live availability & workout tracking
         </p>
       </div>

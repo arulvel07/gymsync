@@ -156,7 +156,7 @@ export const AdminMobileNav: React.FC<AdminMobileNavProps> = ({ isOpen, onClose 
         </div>
 
         <div className="border-t border-white/10 pt-4 text-xs text-[#71717a]">
-          GymSync Operational Shell
+          GymSync Campus Management
         </div>
       </div>
     </div>

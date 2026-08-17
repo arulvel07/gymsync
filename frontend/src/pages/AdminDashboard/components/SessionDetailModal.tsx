@@ -46,28 +46,28 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         {/* Detailed Metadata Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1">
-            <div className="text-[0.7rem] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5">
+            <div className="text-xs font-medium text-[#71717a] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-blue-400" /> Date
             </div>
             <div className="text-xs text-[#fafafa] font-medium">{formatDate(session.check_in)}</div>
           </div>
 
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1">
-            <div className="text-[0.7rem] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5">
-              <Dumbbell className="w-3.5 h-3.5 text-purple-400" /> Workout Focus
+            <div className="text-xs font-medium text-[#71717a] flex items-center gap-1.5">
+              <Dumbbell className="w-3.5 h-3.5 text-blue-400" /> Workout Focus
             </div>
             <div className="text-xs text-[#fafafa] font-medium">{session.workout_type}</div>
           </div>
 
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1">
-            <div className="text-[0.7rem] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5">
+            <div className="text-xs font-medium text-[#71717a] flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-400" /> Check In
             </div>
             <div className="text-xs text-[#fafafa] font-medium">{formatTime(session.check_in)}</div>
           </div>
 
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1">
-            <div className="text-[0.7rem] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5">
+            <div className="text-xs font-medium text-[#71717a] flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" /> Check Out
             </div>
             <div className="text-xs text-[#fafafa] font-medium">
@@ -76,10 +76,10 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           </div>
 
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-1 sm:col-span-2">
-            <div className="text-[0.7rem] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-cyan-400" /> Session Duration
+            <div className="text-xs font-medium text-[#71717a] flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-zinc-400" /> Session Duration
             </div>
-            <div className="text-xs text-[#fafafa] font-medium">
+            <div className="text-xs text-[#fafafa] font-medium font-mono">
               {session.duration_minutes !== null && session.duration_minutes !== undefined
                 ? `${formatDuration(session.duration_minutes)} (${session.duration_minutes} minutes)`
                 : 'Session in progress'}

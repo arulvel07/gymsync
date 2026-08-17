@@ -29,7 +29,7 @@ export const QREntranceKiosk: React.FC = () => {
   const [config, setConfig] = useState<GymConfig | null>(null);
   const [occupancy, setOccupancy] = useState<OccupancyResponse | null>(null);
 
-  // Status & Telemetry
+  // Status & Network
   const [loading, setLoading] = useState<boolean>(true);
   const [isRotating, setIsRotating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -196,14 +196,14 @@ export const QREntranceKiosk: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="font-extrabold tracking-tight text-white text-base sm:text-xl">GYMSYNC</span>
               <span className="text-[0.6rem] sm:text-[0.65rem] font-bold uppercase tracking-widest px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25">
-                Kiosk Terminal
+                Gym Entrance
               </span>
             </div>
-            <p className="text-[0.7rem] sm:text-xs text-[#a1a1aa] font-medium tracking-wide">IIITDM CAMPUS GYM ENTRANCE</p>
+            <p className="text-[0.7rem] sm:text-xs text-[#a1a1aa] font-medium tracking-wide">IIITDM Campus Gym</p>
           </div>
         </div>
 
-        {/* Operational Telemetry & System Clock */}
+        {/* Kiosk Status & System Clock */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Live System Time */}
           {currentTime && (
@@ -216,15 +216,15 @@ export const QREntranceKiosk: React.FC = () => {
           {/* Operational Status Indicator */}
           {error ? (
             <Badge variant="red" icon={<WifiOff size={13} />}>
-              <span className="hidden xs:inline">ENTRY SYSTEM </span>OFFLINE
+              <span className="hidden sm:inline">Entrance </span>Offline
             </Badge>
           ) : !isOpen ? (
             <Badge variant="red" icon={<Lock size={13} />}>
-              <span className="hidden xs:inline">FACILITY </span>CLOSED
+              <span className="hidden sm:inline">Gym </span>Closed
             </Badge>
           ) : (
             <Badge variant="green" icon={<ShieldCheck size={13} />}>
-              <span className="hidden xs:inline">ENTRY SYSTEM </span>ONLINE
+              <span className="hidden sm:inline">Entrance </span>Online
             </Badge>
           )}
 
@@ -233,9 +233,9 @@ export const QREntranceKiosk: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen Kiosk' : 'Enter Fullscreen Kiosk'}
+            title={isFullscreen ? 'Exit Fullscreen Mode' : 'Enter Fullscreen Mode'}
             className="text-[#a1a1aa] hover:text-white hover:bg-white/10 p-2 sm:p-2.5 h-auto"
-            aria-label={isFullscreen ? 'Exit Fullscreen Kiosk' : 'Enter Fullscreen Kiosk'}
+            aria-label={isFullscreen ? 'Exit Fullscreen Mode' : 'Enter Fullscreen Mode'}
           >
             {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </Button>
@@ -252,8 +252,8 @@ export const QREntranceKiosk: React.FC = () => {
         {loading && (
           <Card className="w-full p-6 sm:p-10 flex flex-col items-center justify-center border-white/10 shadow-2xl">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <h2 className="text-sm sm:text-base font-semibold text-white mb-2">INITIALIZING ENTRANCE KIOSK...</h2>
-            <p className="text-xs text-[#a1a1aa] max-w-xs">Connecting to entrance telemetry service & fetching active token.</p>
+            <h2 className="text-sm sm:text-base font-semibold text-white mb-2">Connecting to Entrance System...</h2>
+            <p className="text-xs text-[#a1a1aa] max-w-xs">Fetching the active entrance code.</p>
             {/* Skeleton Box */}
             <div className="w-56 h-56 sm:w-64 sm:h-64 bg-white/5 rounded-2xl border border-white/10 mt-6 animate-pulse" />
           </Card>
@@ -268,18 +268,18 @@ export const QREntranceKiosk: React.FC = () => {
               <AlertTriangle size={28} className="sm:w-8 sm:h-8" />
             </div>
             <Badge variant="red" className="mb-3">
-              SYSTEM DISCONNECTED
+              System Offline
             </Badge>
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">ENTRY SYSTEM OFFLINE</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Entrance System Offline</h2>
             <p className="text-xs text-[#a1a1aa] max-w-sm mb-6 leading-relaxed">
-              Unable to generate dynamic entrance QR code. The facility server could not be reached.
+              Could not connect to the gym server to generate an entrance QR code.
             </p>
             <Button
               variant="primary"
               onClick={() => fetchQRTokenData(true)}
               iconLeft={<RefreshCw size={16} />}
             >
-              Retry Connection
+              Try Again
             </Button>
           </Card>
         )}
@@ -294,29 +294,29 @@ export const QREntranceKiosk: React.FC = () => {
             </div>
 
             <Badge variant="red" className="mb-3">
-              ● FACILITY CLOSED
+              ● Gym Closed
             </Badge>
 
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-2">Gym Currently Closed</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-2">Gym Closed</h1>
             <p className="text-xs text-[#a1a1aa] max-w-sm mb-6 leading-relaxed">
-              Entrance check-in is currently inactive. Dynamic entrance QR generation will resume automatically when the gym opens.
+              Entrance check-in is unavailable while the gym is closed. QR codes will refresh automatically when the gym opens.
             </p>
 
             {/* Operating Hours Display */}
             {config && (
               <div className="w-full max-w-sm bg-white/[0.03] border border-white/10 rounded-xl p-3.5 sm:p-4 text-left mb-6">
                 <div className="text-[0.68rem] uppercase font-bold tracking-widest text-[#71717a] mb-2 flex items-center gap-1.5">
-                  <Clock size={12} className="text-blue-400" /> Operating Schedule
+                  <Clock size={12} className="text-blue-400" /> Gym Hours
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-[#71717a] block text-[0.65rem]">Morning Shift</span>
+                    <span className="text-[#71717a] block text-[0.65rem]">Morning Hours</span>
                     <span className="font-mono text-white font-semibold">
                       {config.open_time?.substring(0, 5)} - {config.close_time?.substring(0, 5)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[#71717a] block text-[0.65rem]">Evening Shift</span>
+                    <span className="text-[#71717a] block text-[0.65rem]">Evening Hours</span>
                     <span className="font-mono text-white font-semibold">
                       {config.open_time_2?.substring(0, 5)} - {config.close_time_2?.substring(0, 5)}
                     </span>
@@ -334,7 +334,7 @@ export const QREntranceKiosk: React.FC = () => {
               }}
               iconLeft={<RefreshCw size={14} />}
             >
-              Refresh Facility Status
+              Check Gym Status
             </Button>
           </Card>
         )}
@@ -347,7 +347,7 @@ export const QREntranceKiosk: React.FC = () => {
             {/* Status Eyebrow Header */}
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
               <Badge variant="green">● Open Now</Badge>
-              <Badge variant="blue">7-Min Security Token</Badge>
+              <Badge variant="blue">Refreshes Every 7 Mins</Badge>
             </div>
 
             {/* Kiosk Action Title */}
@@ -390,7 +390,7 @@ export const QREntranceKiosk: React.FC = () => {
               {isRotating && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-2xl flex items-center justify-center text-white text-xs font-semibold gap-2">
                   <RefreshCw className="animate-spin" size={20} />
-                  <span>Updating QR...</span>
+                  <span>Refreshing QR...</span>
                 </div>
               )}
             </div>
@@ -447,9 +447,9 @@ export const QREntranceKiosk: React.FC = () => {
             {/* =================================================================== */}
             {/* FOOTER METADATA & MANUAL REFRESH */}
             {/* =================================================================== */}
-            <div className="w-full max-w-sm border-t border-white/10 pt-3 sm:pt-4 flex flex-col xs:flex-row xs:items-center justify-between gap-3 text-left text-xs">
+            <div className="w-full max-w-sm border-t border-white/10 pt-3 sm:pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left text-xs">
               <div className="min-w-0">
-                <span className="text-[0.65rem] uppercase font-bold text-[#71717a] block">Target Endpoint</span>
+                <span className="text-[0.65rem] uppercase font-bold text-[#71717a] block">Check-in link</span>
                 <span className="font-mono text-[0.7rem] text-blue-400/90 truncate block max-w-[180px] sm:max-w-[200px]">
                   {window.location.origin}/check-in
                 </span>
@@ -463,7 +463,7 @@ export const QREntranceKiosk: React.FC = () => {
                 iconLeft={<RefreshCw size={13} className={isRotating ? 'animate-spin' : ''} />}
                 className="shrink-0"
               >
-                Rotate Code
+                Refresh Code
               </Button>
             </div>
           </Card>
@@ -473,7 +473,7 @@ export const QREntranceKiosk: React.FC = () => {
       {/* Fullscreen Footer Branding */}
       {isFullscreen && (
         <div className="text-center pt-4 sm:pt-6 text-[0.7rem] sm:text-xs text-[#71717a] font-mono border-t border-white/10 mt-4 sm:mt-6">
-          GYMSYNC AUTOMATED PHYSICAL ENTRANCE TERMINAL — IIITDM CAMPUS
+          GymSync Entrance Terminal · IIITDM Sports Complex
         </div>
       )}
     </div>

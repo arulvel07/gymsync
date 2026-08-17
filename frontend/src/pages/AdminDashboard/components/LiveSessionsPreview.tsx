@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/Table';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -50,7 +51,7 @@ export const LiveSessionsPreview: React.FC<LiveSessionsPreviewProps> = ({
           <h3 className="text-base font-bold text-white">Current & Recent Sessions</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={onViewAll} className="text-blue-400 hover:text-blue-300">
-          View Attendance Register <ArrowRight size={14} />
+          View Attendance <ArrowRight size={14} />
         </Button>
       </div>
 
@@ -58,31 +59,31 @@ export const LiveSessionsPreview: React.FC<LiveSessionsPreviewProps> = ({
       {displaySessions.length > 0 ? (
         <>
           {/* Desktop Table View */}
-          <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-white/10 text-zinc-400 uppercase text-[0.7rem] tracking-wider font-semibold">
-                  <th className="pb-2.5 font-semibold">Student</th>
-                  <th className="pb-2.5 font-semibold">Roll Number</th>
-                  <th className="pb-2.5 font-semibold">Workout</th>
-                  <th className="pb-2.5 font-semibold">Check-In</th>
-                  <th className="pb-2.5 font-semibold text-right">Status / Duration</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
+          <div className="hidden sm:block">
+            <Table label="Live sessions preview table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Roll Number</TableHead>
+                  <TableHead>Workout</TableHead>
+                  <TableHead>Check-In</TableHead>
+                  <TableHead className="text-right">Status / Duration</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {displaySessions.map((s) => {
                   const isActive = !s.check_out;
                   const workoutColor = getWorkoutColor(s.workout_type);
 
                   return (
-                    <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 font-semibold text-white">
+                    <TableRow key={s.id}>
+                      <TableCell className="font-semibold text-white">
                         {s.full_name || 'Student'}
-                      </td>
-                      <td className="py-3 font-mono text-zinc-400">
+                      </TableCell>
+                      <TableCell className="font-mono text-zinc-400">
                         {s.roll_number || '—'}
-                      </td>
-                      <td className="py-3 font-medium">
+                      </TableCell>
+                      <TableCell className="font-medium">
                         <span
                           className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[0.72rem] bg-white/[0.04] border border-white/5"
                           style={{ color: workoutColor }}
@@ -90,11 +91,11 @@ export const LiveSessionsPreview: React.FC<LiveSessionsPreviewProps> = ({
                           {getWorkoutIcon(s.workout_type, "w-3.5 h-3.5")}
                           <span>{s.workout_type}</span>
                         </span>
-                      </td>
-                      <td className="py-3 font-mono text-zinc-400">
+                      </TableCell>
+                      <TableCell className="font-mono text-zinc-400">
                         {formatTime(s.check_in)}
-                      </td>
-                      <td className="py-3 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         {isActive ? (
                           <StatusBadge status="active" />
                         ) : (
@@ -102,12 +103,12 @@ export const LiveSessionsPreview: React.FC<LiveSessionsPreviewProps> = ({
                             {s.duration_minutes ? formatDuration(s.duration_minutes) : formatTime(s.check_out)}
                           </span>
                         )}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Cards View */}

@@ -120,7 +120,7 @@ export const CrowdForecastPreview: React.FC = () => {
 
   return (
     <Card className="h-full flex flex-col justify-between">
-      <CardHeader className="pb-3 border-b border-[#27272a]">
+      <CardHeader className="pb-3 border-b border-white/10">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
@@ -158,7 +158,7 @@ export const CrowdForecastPreview: React.FC = () => {
 
         {/* Content Body */}
         {loading && !forecast ? (
-          <div className="p-3.5 rounded-xl bg-[#18181b] border border-[#27272a] space-y-3">
+          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
             <Skeleton height="16px" width="50%" />
             <Skeleton height="32px" width="70%" />
           </div>
@@ -175,9 +175,9 @@ export const CrowdForecastPreview: React.FC = () => {
             description="We don't have enough data for this time yet."
           />
         ) : (
-          <div className="p-3.5 rounded-xl bg-[#18181b] border border-[#27272a] space-y-3">
+          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">
+              <span className="text-[10px] uppercase tracking-wider text-[#71717a] font-semibold">
                 Expected crowd
               </span>
               <Badge
@@ -202,7 +202,7 @@ export const CrowdForecastPreview: React.FC = () => {
 
             <div className="pt-1 flex items-baseline justify-between text-sm font-bold text-white font-mono">
               <span>{count} people expected</span>
-              <span className="text-xs text-zinc-500 font-normal">
+              <span className="text-xs text-[#71717a] font-normal">
                 ({percent}%)
               </span>
             </div>
@@ -225,8 +225,8 @@ export const CrowdForecastPreview: React.FC = () => {
         )}
 
         {/* Grounded Attribution */}
-        <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-1 border-t border-zinc-800/50">
-          <Clock className="w-3 h-3 text-zinc-600 shrink-0" />
+        <div className="text-[11px] text-[#71717a] flex items-center gap-1.5 pt-1 border-t border-white/5">
+          <Clock className="w-3 h-3 text-[#71717a] shrink-0" />
           <span>Calculated from historical 30-day attendance and planned workouts.</span>
         </div>
       </CardContent>

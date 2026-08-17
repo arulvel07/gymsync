@@ -34,7 +34,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold uppercase tracking-wider text-[#a1a1aa]"
+            className="block text-xs font-semibold text-zinc-300"
           >
             {label}
             {props.required && <span className="text-red-400 ml-1" aria-hidden="true">*</span>}

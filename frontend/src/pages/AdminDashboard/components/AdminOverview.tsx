@@ -6,11 +6,12 @@ import { analyticsApi } from '@/services/api/analytics';
 import { FacilityStatusPanel } from './FacilityStatusPanel';
 import { TodaysSnapshot } from './TodaysSnapshot';
 import { LiveSessionsPreview } from './LiveSessionsPreview';
-import { QuickOperations } from './QuickOperations';
+import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { useToast } from '@/components/ui/Toast';
 import { exportToCSV, formatDate, formatTime } from '@/lib/utils';
 import type { OccupancyResponse, AnalyticsSummary, GymSession } from '@/types';
+import { Download } from 'lucide-react';
 
 export const AdminOverview: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export const AdminOverview: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const loadTelemetryData = useCallback(async (isManualRefresh = false) => {
+  const loadOverviewData = useCallback(async (isManualRefresh = false) => {
     try {
       if (isManualRefresh) setLoading(true);
       const [occData, summaryData, sessionData] = await Promise.all([
@@ -41,13 +42,13 @@ export const AdminOverview: React.FC = () => {
       setError(false);
 
       if (isManualRefresh) {
-        showToast('Facility telemetry refreshed', 'info');
+        showToast('Gym overview refreshed', 'info');
       }
     } catch (err) {
       console.error('[AdminOverview] Error loading overview data:', err);
       setError(true);
       if (isManualRefresh) {
-        showToast('Failed to refresh facility telemetry', 'error');
+        showToast('Failed to refresh gym overview', 'error');
       }
     } finally {
       setLoading(false);
@@ -57,12 +58,12 @@ export const AdminOverview: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
 
-    loadTelemetryData();
+    loadOverviewData();
 
     // 60s auto-polling refresh interval with unmount cleanup
     const interval = setInterval(() => {
       if (isMounted) {
-        loadTelemetryData();
+        loadOverviewData();
       }
     }, 60000);
 
@@ -70,7 +71,7 @@ export const AdminOverview: React.FC = () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [loadTelemetryData]);
+  }, [loadOverviewData]);
 
   // Handle CSV Export
   const handleExportCSV = async () => {
@@ -86,10 +87,10 @@ export const AdminOverview: React.FC = () => {
         'Duration (min)': s.duration_minutes || '',
       }));
       exportToCSV(exportData, `gym-attendance-${new Date().toISOString().split('T')[0]}.csv`);
-      showToast('CSV report exported successfully', 'success');
+      showToast('Attendance report exported successfully', 'success');
     } catch (err) {
       console.error('[AdminOverview] Error exporting CSV:', err);
-      showToast('Failed to export CSV report', 'error');
+      showToast('Failed to export attendance report', 'error');
     } finally {
       setExporting(false);
     }
@@ -99,9 +100,9 @@ export const AdminOverview: React.FC = () => {
     return (
       <div className="py-8">
         <ErrorState
-          title="Unable to load gym overview"
-          message="Your system access is active, but we could not establish a connection to the facility telemetry server."
-          onRetry={() => loadTelemetryData(true)}
+          title="WE COULDN'T LOAD GYM OVERVIEW"
+          message="Your data is safe. We just couldn't reach the gym server."
+          onRetry={() => loadOverviewData(true)}
         />
       </div>
     );
@@ -110,13 +111,25 @@ export const AdminOverview: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-          Gym Overview
-        </h1>
-        <p className="text-xs text-zinc-400 mt-1">
-          Real-time facility status, today's activity, active sessions, and operational controls.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Gym Overview
+          </h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Live gym status, today's activity, and active sessions.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="self-start sm:self-auto gap-1.5 text-xs shrink-0"
+          onClick={handleExportCSV}
+          loading={exporting}
+          iconLeft={<Download size={14} />}
+        >
+          Export Attendance
+        </Button>
       </div>
 
       {/* Top Grid: Facility Status + Today's Activity */}
@@ -125,21 +138,18 @@ export const AdminOverview: React.FC = () => {
           occupancy={occupancy}
           loading={loading}
           error={error}
-          onRefresh={() => loadTelemetryData(true)}
+          onRefresh={() => loadOverviewData(true)}
           lastUpdated={lastUpdated}
         />
         <TodaysSnapshot summary={summary} loading={loading} />
       </div>
 
-      {/* Bottom Grid: Live Sessions Preview + Quick Operations */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5">
-        <LiveSessionsPreview
-          sessions={sessions}
-          loading={loading}
-          onViewAll={() => navigate('/admin/attendance')}
-        />
-        <QuickOperations onExportCSV={handleExportCSV} exporting={exporting} />
-      </div>
+      {/* Full-width Live Sessions Preview */}
+      <LiveSessionsPreview
+        sessions={sessions}
+        loading={loading}
+        onViewAll={() => navigate('/admin/attendance')}
+      />
     </div>
   );
 };

@@ -12,7 +12,7 @@ export const Brand: React.FC<BrandProps> = ({ variant = 'student', className = '
   return (
     <Link
       to={targetPath}
-      aria-label={variant === 'admin' ? 'GymSync Admin Command Center' : 'GymSync Student Portal'}
+      aria-label={variant === 'admin' ? 'GymSync Admin Overview' : 'GymSync Student Portal'}
       className={`flex items-center gap-2.5 text-[#fafafa] font-bold text-[0.95rem] tracking-tight no-underline hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded ${className}`}
     >
       <div

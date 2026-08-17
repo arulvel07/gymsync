@@ -59,13 +59,13 @@ export const GymStatusPanel: React.FC<GymStatusPanelProps> = ({ occupancy, loadi
         {isOpen && isFull && (
           <div className="w-full mt-4 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-center gap-2 justify-center">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>Facility at max capacity ({maxCapacity}/{maxCapacity}). Wait for check-outs.</span>
+            <span>The gym is at full capacity ({maxCapacity}/{maxCapacity}). Please check back shortly.</span>
           </div>
         )}
       </CardContent>
 
-      <div className="pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-zinc-400 px-5 pb-4">
-        <span>Traffic Density:</span>
+      <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-[#a1a1aa] px-5 pb-4">
+        <span>Traffic:</span>
         <span className="font-semibold" style={{ color: isOpen ? level.color : '#ef4444' }}>
           {isOpen ? level.label : 'Closed'}
         </span>

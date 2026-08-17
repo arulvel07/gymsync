@@ -58,22 +58,22 @@ export const LandingPage: React.FC = () => {
                 <Badge variant="blue">IIITDM Kancheepuram Sports Complex</Badge>
               </div>
               <h1 className="text-4xl sm:text-5xl font-extrabold text-[#fafafa] tracking-tight leading-tight mb-4">
-                Smart Campus Gym<br />Management Portal
+                Campus Gym<br />Management System
               </h1>
               <p className="text-base text-[#a1a1aa] mb-7 max-w-[520px] leading-relaxed">
-                Real-time occupancy tracking, workout focus analytics, digital attendance, and crowd forecasting designed for students and campus management.
+                Live occupancy tracking, quick check-ins, workout planning, and crowd forecasts for the campus community.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   to="/login"
-                  className="bg-[#3b82f6] text-white text-sm font-medium px-5 py-2.5 rounded border border-white/15 hover:bg-[#2563eb] transition-all inline-flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
+                  className="bg-[#3b82f6] text-white text-sm font-medium px-5 py-2.5 rounded-lg border border-white/15 hover:bg-[#2563eb] transition-all inline-flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
                 >
-                  Access Portal
+                  Sign In
                   <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 <a
                   href="#live"
-                  className="bg-[#121215] text-[#fafafa] text-sm font-medium px-5 py-2.5 rounded border border-white/10 hover:bg-[#1a1a1e] transition-all inline-flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
+                  className="bg-[#121215] text-[#fafafa] text-sm font-medium px-5 py-2.5 rounded-lg border border-white/10 hover:bg-[#1a1a1e] transition-all inline-flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]"
                 >
                   View Live Status
                 </a>
@@ -82,16 +82,20 @@ export const LandingPage: React.FC = () => {
               {/* Facility Summary Row */}
               <div className="flex gap-6 mt-10 pt-6 border-t border-white/10">
                 <div>
-                  <div className="stat-number text-xl text-[#fafafa]">Real-Time</div>
-                  <div className="text-xs text-[#71717a]">Occupancy Telemetry</div>
+                  <div className="stat-number text-xl text-[#fafafa]">
+                    {loading ? '—' : occupancy?.current_count ?? 0}
+                  </div>
+                  <div className="text-xs text-[#71717a]">Live Headcount</div>
                 </div>
                 <div>
-                  <div className="stat-number text-xl text-[#fafafa]">50</div>
-                  <div className="text-xs text-[#71717a]">Max Rated Capacity</div>
+                  <div className="stat-number text-xl text-[#fafafa]">
+                    {occupancy?.max_capacity ?? 50}
+                  </div>
+                  <div className="text-xs text-[#71717a]">Maximum Capacity</div>
                 </div>
                 <div>
-                  <div className="stat-number text-xl text-[#fafafa]">Digital</div>
-                  <div className="text-xs text-[#71717a]">Check-In Logging</div>
+                  <div className="stat-number text-xl text-[#fafafa]">Instant</div>
+                  <div className="text-xs text-[#71717a]">QR Check-In</div>
                 </div>
               </div>
             </div>
@@ -102,7 +106,7 @@ export const LandingPage: React.FC = () => {
                 <div className="flex justify-between items-center mb-5 text-left">
                   <div>
                     <h2 className="text-[0.75rem] uppercase tracking-wider text-[#71717a] font-semibold">
-                      Facility Status
+                      Gym Status
                     </h2>
                     <div className="text-sm font-semibold mt-0.5" style={{ color: level?.color || '#10b981' }}>
                       {loading ? <Skeleton height="18px" width="100px" /> : occupancy?.is_open ? level?.label : 'Gym Closed'}

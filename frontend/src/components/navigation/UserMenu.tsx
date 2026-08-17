@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Shield, User, ChevronDown } from 'lucide-react';
+import { LogOut, Shield, LayoutDashboard, ChevronDown } from 'lucide-react';
 
 interface UserMenuProps {
   className?: string;
@@ -9,6 +9,7 @@ interface UserMenuProps {
 
 export const UserMenu: React.FC<UserMenuProps> = ({ className = '' }) => {
   const { profile, logout } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -116,16 +117,29 @@ export const UserMenu: React.FC<UserMenuProps> = ({ className = '' }) => {
           {/* Role switcher link if user is admin */}
           {profile?.role === 'admin' && (
             <div className="py-1 border-b border-white/10" role="none">
-              <Link
-                ref={(el) => { menuItemsRef.current[0] = el; }}
-                to="/admin"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2 px-3.5 py-2 text-blue-400 hover:bg-blue-500/10 transition-colors font-medium no-underline focus:outline-none focus-visible:bg-blue-500/20"
-                role="menuitem"
-              >
-                <Shield size={14} aria-hidden="true" />
-                <span>Admin Command Center</span>
-              </Link>
+              {location.pathname.startsWith('/admin') ? (
+                <Link
+                  ref={(el) => { menuItemsRef.current[0] = el; }}
+                  to="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-3.5 py-2 text-blue-400 hover:bg-blue-500/10 transition-colors font-medium no-underline focus:outline-none focus-visible:bg-blue-500/20"
+                  role="menuitem"
+                >
+                  <LayoutDashboard size={14} aria-hidden="true" />
+                  <span>Student Dashboard</span>
+                </Link>
+              ) : (
+                <Link
+                  ref={(el) => { menuItemsRef.current[0] = el; }}
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-3.5 py-2 text-blue-400 hover:bg-blue-500/10 transition-colors font-medium no-underline focus:outline-none focus-visible:bg-blue-500/20"
+                  role="menuitem"
+                >
+                  <Shield size={14} aria-hidden="true" />
+                  <span>Admin Overview</span>
+                </Link>
+              )}
             </div>
           )}
 

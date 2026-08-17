@@ -47,8 +47,8 @@ export const ActiveSessionPanel: React.FC<ActiveSessionPanelProps> = ({
         </div>
 
         {/* Live Elapsed Duration Ticker */}
-        <div className="w-full py-4 px-6 rounded-xl bg-[#121215] border border-[#27272a]">
-          <div className="text-[11px] uppercase tracking-widest text-zinc-500 font-semibold mb-1 flex items-center justify-center gap-1.5">
+        <div className="w-full py-4 px-6 rounded-xl bg-[#121215] border border-white/10">
+          <div className="text-[11px] uppercase tracking-widest text-[#71717a] font-semibold mb-1 flex items-center justify-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-subtle inline-block" />
             <span>Session Duration</span>
           </div>
@@ -58,7 +58,7 @@ export const ActiveSessionPanel: React.FC<ActiveSessionPanelProps> = ({
         </div>
       </CardContent>
 
-      <div className="p-5 pt-3 border-t border-[#27272a]">
+      <div className="p-5 pt-3 border-t border-white/10">
         <Button
           variant="danger"
           size="lg"

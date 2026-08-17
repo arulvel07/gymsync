@@ -31,7 +31,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="block text-xs font-semibold uppercase tracking-wider text-[#a1a1aa]"
+            className="block text-xs font-semibold text-zinc-300"
           >
             {label}
             {props.required && <span className="text-red-400 ml-1" aria-hidden="true">*</span>}

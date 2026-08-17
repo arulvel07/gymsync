@@ -137,8 +137,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               className="flex items-center justify-between p-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 transition-colors no-underline text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <div className="flex items-center gap-2">
-                <Shield size={14} aria-hidden="true" />
-                <span>Switch to Admin Command Center</span>
+                 <Shield size={14} aria-hidden="true" />
+                <span>Switch to Admin Overview</span>
               </div>
               <span className="text-[10px] uppercase font-bold">Open →</span>
             </Link>

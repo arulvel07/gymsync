@@ -54,10 +54,10 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
   return (
     <Card className="h-full flex flex-col justify-between">
       <CardHeader className="pb-3">
-        <div className="text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-1">
+        <div className="text-xs uppercase tracking-wider text-[#71717a] font-semibold mb-1">
           Session Registration
         </div>
-        <CardTitle className="text-lg font-semibold text-white">
+        <CardTitle className="text-lg font-semibold text-[#fafafa]">
           Ready to Train? What are you working today?
         </CardTitle>
       </CardHeader>
@@ -104,7 +104,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
 
         {/* Workout Selection Grid */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+          <label className="block text-xs font-semibold text-[#a1a1aa] mb-2">
             Select Training Focus
           </label>
           <div
@@ -120,13 +120,13 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
                   type="button"
                   onClick={() => onSelectWorkout(type)}
                   aria-pressed={isSelected}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-xs font-medium transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-xs font-medium transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer ${
                     isSelected
                       ? 'bg-blue-600/15 border-blue-500 text-blue-400 shadow-sm'
-                      : 'bg-[#18181b] border-[#27272a] text-zinc-300 hover:border-zinc-700 hover:text-white'
+                      : 'bg-[#18181c] border-white/10 text-zinc-300 hover:border-white/20 hover:text-white'
                   }`}
                 >
-                  <span className={isSelected ? 'text-blue-400' : 'text-zinc-500'} aria-hidden="true">
+                  <span className={isSelected ? 'text-blue-400' : 'text-[#71717a]'} aria-hidden="true">
                     {getWorkoutLucideIcon(type)}
                   </span>
                   <span className="truncate">{type}</span>
@@ -149,7 +149,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
         )}
       </CardContent>
 
-      <div className="p-5 pt-3 border-t border-[#27272a]">
+      <div className="p-5 pt-3 border-t border-white/10">
         <Button
           variant="primary"
           size="lg"

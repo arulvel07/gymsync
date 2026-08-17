@@ -5,16 +5,19 @@ import { WORKOUT_TYPES } from '@/lib/constants';
 import { formatDate, formatTime, formatDuration, exportToCSV } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { DateInput } from '@/components/ui/DateInput';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/Table';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { useToast } from '@/components/ui/Toast';
 import { SessionDetailModal } from './SessionDetailModal';
-import { Download, Search, X, Eye, Filter, Calendar, Clock, Dumbbell, Activity, RefreshCw } from 'lucide-react';
+import { Download, X, Eye, Filter, Calendar, Clock, Dumbbell, Activity, RefreshCw } from 'lucide-react';
 
 export const AttendanceAudit: React.FC = () => {
   const { showToast } = useToast();
@@ -106,7 +109,7 @@ export const AttendanceAudit: React.FC = () => {
   const handleCSVExport = async () => {
     setExporting(true);
     try {
-      const allSess = await adminApi.getAllSessions(200);
+      const allSess = await adminApi.getAllSessions(500, 0, debouncedSearch, dateFrom, dateTo);
       const exportData = allSess.map((s) => ({
         Name: s.full_name || '',
         'Roll Number': s.roll_number || '',
@@ -143,9 +146,6 @@ export const AttendanceAudit: React.FC = () => {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
-          <div className="text-[0.7rem] uppercase tracking-wider text-blue-400 font-bold mb-1">
-            Audit & Compliance
-          </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#fafafa]">Attendance</h1>
           <p className="text-xs text-[#a1a1aa] mt-0.5">Review and export gym activity records.</p>
         </div>
@@ -177,57 +177,34 @@ export const AttendanceAudit: React.FC = () => {
       <Card className="p-4 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search Input */}
-          <div className="lg:col-span-2 relative">
-            <label htmlFor="attendance-search" className="block text-[0.68rem] uppercase tracking-wider font-semibold text-[#71717a] mb-1">
-              Search Student
-            </label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-[#71717a] absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                id="attendance-search"
-                type="text"
-                placeholder="Name or roll number..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] placeholder-[#71717a] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => setSearchInput('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-white"
-                  aria-label="Clear search text"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+          <div className="lg:col-span-2">
+            <SearchInput
+              id="attendance-search"
+              label="Search Student"
+              placeholder="Name or roll number..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => setSearchInput('')}
+            />
           </div>
 
           {/* Date From */}
           <div>
-            <label htmlFor="date-from" className="block text-[0.68rem] uppercase tracking-wider font-semibold text-[#71717a] mb-1">
-              From Date
-            </label>
-            <input
+            <DateInput
               id="date-from"
-              type="date"
+              label="From Date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
             />
           </div>
 
           {/* Date To */}
           <div>
-            <label htmlFor="date-to" className="block text-[0.68rem] uppercase tracking-wider font-semibold text-[#71717a] mb-1">
-              To Date
-            </label>
-            <input
+            <DateInput
               id="date-to"
-              type="date"
+              label="To Date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 bg-[#121215] border border-white/10 rounded-lg text-xs text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 hover:border-white/20 transition-colors"
             />
           </div>
 
@@ -256,7 +233,7 @@ export const AttendanceAudit: React.FC = () => {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 options={[
-                  { label: 'All Session Status', value: 'all' },
+                  { label: 'All Sessions', value: 'all' },
                   { label: 'Active Now', value: 'active' },
                   { label: 'Completed', value: 'completed' },
                 ]}
@@ -283,11 +260,11 @@ export const AttendanceAudit: React.FC = () => {
         </div>
       </Card>
 
-      {/* Summary Telemetry Strip */}
+      {/* Attendance Summary Strip */}
       {!loading && !error && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 flex flex-col">
-            <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[#71717a]">Total Records</span>
+            <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[#71717a]">Total Sessions</span>
             <span className="text-lg font-bold font-mono text-[#fafafa] mt-1">{summaryMetrics.total}</span>
           </div>
 
@@ -303,7 +280,7 @@ export const AttendanceAudit: React.FC = () => {
 
           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/5 flex flex-col">
             <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[#71717a]">Avg Duration</span>
-            <span className="text-lg font-bold font-mono text-cyan-400 mt-1">
+            <span className="text-lg font-bold font-mono text-[#fafafa] mt-1">
               {summaryMetrics.avgDuration ? formatDuration(summaryMetrics.avgDuration) : '—'}
             </span>
           </div>
@@ -324,11 +301,11 @@ export const AttendanceAudit: React.FC = () => {
       ) : filteredSessions.length === 0 ? (
         <Card className="p-8">
           <EmptyState
-            title={hasActiveFilters ? 'NO ATTENDANCE FOUND' : 'NO ATTENDANCE RECORDS'}
+            title={hasActiveFilters ? 'No Attendance Records Found' : 'No Attendance Records'}
             description={
               hasActiveFilters
-                ? 'Try changing your search or filters.'
-                : 'There are no gym session records recorded yet.'
+                ? 'Try adjusting your search or filters.'
+                : 'No gym sessions have been recorded yet.'
             }
             primaryAction={
               hasActiveFilters ? (
@@ -343,95 +320,86 @@ export const AttendanceAudit: React.FC = () => {
         <div className="space-y-4">
           {/* Desktop Table Presentation (Visible on md/lg screens) */}
           <div className="hidden md:block">
-            <Card className="overflow-hidden">
-              <div
-                tabIndex={0}
-                role="region"
-                aria-label="Attendance records table"
-                className="overflow-x-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-[#18181c] border-b border-white/10 text-[#71717a] uppercase tracking-wider font-semibold text-[0.68rem]">
-                      <th scope="col" className="py-3 px-4">Student</th>
-                      <th scope="col" className="py-3 px-4">Roll Number</th>
-                      <th scope="col" className="py-3 px-4">Date</th>
-                      <th scope="col" className="py-3 px-4">Check In</th>
-                      <th scope="col" className="py-3 px-4">Check Out</th>
-                      <th scope="col" className="py-3 px-4">Workout</th>
-                      <th scope="col" className="py-3 px-4">Duration</th>
-                      <th scope="col" className="py-3 px-4">Status</th>
-                      <th scope="col" className="py-3 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {filteredSessions.map((session) => {
-                      const isActive = !session.check_out;
+            <Table label="Attendance records table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Roll Number</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Check In</TableHead>
+                  <TableHead>Check Out</TableHead>
+                  <TableHead>Workout</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSessions.map((session) => {
+                  const isActive = !session.check_out;
 
-                      return (
-                        <tr
-                          key={session.id}
-                          onClick={() => setSelectedSession(session)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              setSelectedSession(session);
-                            }
+                  return (
+                    <TableRow
+                      key={session.id}
+                      onClick={() => setSelectedSession(session)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedSession(session);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`View session details for ${session.full_name || 'Student'}`}
+                      className="cursor-pointer"
+                    >
+                      <TableCell className="font-semibold text-[#fafafa]">
+                        {session.full_name || 'Student'}
+                      </TableCell>
+                      <TableCell className="font-mono text-[#a1a1aa]">
+                        {session.roll_number || '—'}
+                      </TableCell>
+                      <TableCell className="text-[#a1a1aa]">
+                        {formatDate(session.check_in)}
+                      </TableCell>
+                      <TableCell className="text-[#fafafa]">
+                        {formatTime(session.check_in)}
+                      </TableCell>
+                      <TableCell className="text-[#a1a1aa]">
+                        {session.check_out ? formatTime(session.check_out) : <span className="text-emerald-400 font-semibold">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white text-[0.7rem] font-medium">
+                          {session.workout_type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-[#a1a1aa]">
+                        {session.duration_minutes !== null && session.duration_minutes !== undefined
+                          ? formatDuration(session.duration_minutes)
+                          : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={isActive ? 'active' : 'closed'} label={isActive ? 'Active' : 'Completed'} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSession(session);
                           }}
-                          tabIndex={0}
-                          role="button"
-                          aria-label={`View session details for ${session.full_name || 'Student'}`}
-                          className="hover:bg-white/[0.02] focus:bg-white/[0.04] focus:outline-none transition-colors cursor-pointer"
+                          iconLeft={<Eye className="w-3.5 h-3.5 text-blue-400" />}
+                          aria-label={`Inspect session for ${session.full_name || 'Student'}`}
                         >
-                          <td className="py-3 px-4 font-semibold text-[#fafafa]">
-                            {session.full_name || 'Student'}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-[#a1a1aa]">
-                            {session.roll_number || '—'}
-                          </td>
-                          <td className="py-3 px-4 text-[#a1a1aa]">
-                            {formatDate(session.check_in)}
-                          </td>
-                          <td className="py-3 px-4 text-[#fafafa]">
-                            {formatTime(session.check_in)}
-                          </td>
-                          <td className="py-3 px-4 text-[#a1a1aa]">
-                            {session.check_out ? formatTime(session.check_out) : <span className="text-emerald-400 font-semibold">—</span>}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white text-[0.7rem] font-medium">
-                              {session.workout_type}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 font-mono text-[#a1a1aa]">
-                            {session.duration_minutes !== null && session.duration_minutes !== undefined
-                              ? formatDuration(session.duration_minutes)
-                              : '—'}
-                          </td>
-                          <td className="py-3 px-4">
-                            <StatusBadge status={isActive ? 'active' : 'closed'} label={isActive ? 'Active' : 'Completed'} />
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedSession(session);
-                              }}
-                              iconLeft={<Eye className="w-3.5 h-3.5 text-blue-400" />}
-                              aria-label={`Inspect session for ${session.full_name || 'Student'}`}
-                            >
-                              Inspect
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                          Inspect
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Card / List Presentation (Visible on screens < 768px) */}

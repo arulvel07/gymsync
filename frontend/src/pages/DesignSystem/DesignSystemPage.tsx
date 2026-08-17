@@ -529,7 +529,7 @@ export const DesignSystemPage: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
-              { icon: Activity, name: 'Activity', size: '16px', role: 'Telemetry / Cardio' },
+              { icon: Activity, name: 'Activity', size: '16px', role: 'Activity / Cardio' },
               { icon: Users, name: 'Users', size: '16px', role: 'Headcount / Capacity' },
               { icon: Clock, name: 'Clock', size: '16px', role: 'Duration / Shift' },
               { icon: Dumbbell, name: 'Dumbbell', size: '16px', role: 'Workout Focus' },

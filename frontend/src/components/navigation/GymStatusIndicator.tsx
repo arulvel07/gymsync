@@ -81,8 +81,8 @@ export const GymStatusIndicator: React.FC<GymStatusIndicatorProps> = ({ classNam
       </span>
       {isOpen && (
         <>
-          <span className="text-white/20 hidden xs:inline" aria-hidden="true">•</span>
-          <span className="font-mono text-[0.7rem] sm:text-[0.72rem] font-medium text-emerald-300 hidden xs:inline" aria-hidden="true">
+          <span className="text-white/20 hidden sm:inline" aria-hidden="true">•</span>
+          <span className="font-mono text-[0.7rem] sm:text-[0.72rem] font-medium text-emerald-300 hidden sm:inline" aria-hidden="true">
             {count}/{max}
           </span>
         </>

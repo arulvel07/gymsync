@@ -45,11 +45,11 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <div className="text-xs uppercase tracking-wider font-semibold text-rose-400 mb-1 flex items-center gap-1.5">
-              <ShieldAlert size={14} /> Facility Telemetry Status
+              <ShieldAlert size={14} /> Gym Status
             </div>
-            <h3 className="text-lg font-bold text-white">Status Unavailable</h3>
+            <h3 className="text-lg font-bold text-white">Gym Status Unavailable</h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Could not retrieve real-time gym occupancy data from the facility server.
+              Could not retrieve live gym occupancy data from the server.
             </p>
           </div>
           <Button variant="secondary" size="sm" onClick={onRefresh}>
@@ -74,10 +74,10 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
 
   if (!isOpen) {
     statusType = 'closed';
-    statusDetail = 'Gym closed by administration';
+    statusDetail = 'Gym is currently closed';
   } else if (isFull) {
     statusType = 'full';
-    statusDetail = 'Maximum capacity reached';
+    statusDetail = 'Gym is at full capacity';
   } else if (pct > 70) {
     statusType = 'moderate';
     statusDetail = level.label;
@@ -90,7 +90,7 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold flex items-center gap-1.5">
-              <Activity size={14} className="text-blue-400" /> Facility Status
+              <Activity size={14} className="text-blue-400" /> Gym Status
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
               size="sm"
               onClick={onRefresh}
               className="text-zinc-400 hover:text-white p-1.5 h-auto"
-              title="Refresh facility status"
+              title="Refresh gym status"
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </Button>
@@ -120,7 +120,7 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
               <span className="text-xl font-medium text-zinc-500 font-mono">/ {max}</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1 font-medium">
-              {isOpen ? statusDetail : 'Facility is currently closed for workouts'}
+              {isOpen ? statusDetail : 'The gym is currently closed'}
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
               {pct}%
             </div>
             <div className="text-[0.7rem] uppercase tracking-wider font-semibold text-zinc-500">
-              Capacity Load
+              Capacity Used
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export const FacilityStatusPanel: React.FC<FacilityStatusPanelProps> = ({
       {/* Footer Meta */}
       <div className="flex justify-between items-center text-[0.72rem] text-zinc-500 pt-2 border-t border-white/5">
         <span className="flex items-center gap-1 text-zinc-400">
-          <ShieldCheck size={12} className="text-emerald-400" /> Sensor & Access Gateways Online
+          <ShieldCheck size={12} className="text-emerald-400" /> Entrance System Online
         </span>
         {lastUpdated && (
           <span className="font-mono">

@@ -23,26 +23,26 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     title: 'Overview',
     items: [
-      { label: 'Executive Overview', path: '/admin/overview', icon: LayoutDashboard },
+      { label: 'Gym Overview', path: '/admin/overview', icon: LayoutDashboard },
     ],
   },
   {
     title: 'Operations',
     items: [
-      { label: 'Entrance QR Kiosk', path: '/admin/qr', icon: QrCode },
+      { label: 'Gym Entrance', path: '/admin/qr', icon: QrCode },
     ],
   },
   {
     title: 'Insights',
     items: [
-      { label: 'Attendance Register', path: '/admin/attendance', icon: ClipboardList },
-      { label: 'Analytics & Trends', path: '/admin/analytics', icon: BarChart3 },
+      { label: 'Attendance', path: '/admin/attendance', icon: ClipboardList },
+      { label: 'Gym Insights', path: '/admin/analytics', icon: BarChart3 },
     ],
   },
   {
     title: 'Management',
     items: [
-      { label: 'Facility Configuration', path: '/admin/config', icon: Settings },
+      { label: 'Gym Configuration', path: '/admin/config', icon: Settings },
     ],
   },
 ];
