@@ -21,51 +21,84 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 }) => {
   const [manualToken, setManualToken] = useState('');
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isScanningRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        try {
-          if (scannerRef.current) {
-            scannerRef.current.stop().catch(() => {});
-          }
-          const html5QrCode = new Html5Qrcode('qr-reader-student-modal');
-          scannerRef.current = html5QrCode;
-          html5QrCode
-            .start(
-              { facingMode: 'environment' },
-              { fps: 10, qrbox: { width: 220, height: 220 } },
-              (decodedText) => {
+    if (!isOpen) return;
+
+    let html5QrCode: Html5Qrcode | null = null;
+    isScanningRef.current = false;
+
+    const timer = setTimeout(() => {
+      try {
+        html5QrCode = new Html5Qrcode('qr-reader-student-modal');
+        scannerRef.current = html5QrCode;
+        html5QrCode
+          .start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            (decodedText) => {
+              try {
                 let token = decodedText.trim();
                 if (token.includes('token=')) {
-                  const match = token.match(/token=([a-zA-Z0-9]+)/);
-                  if (match) token = match[1];
+                  try {
+                    const urlObj = new URL(token);
+                    const tParam = urlObj.searchParams.get('token');
+                    if (tParam) {
+                      token = tParam;
+                    }
+                  } catch (urlErr) {
+                    const match = token.match(/token=([a-zA-Z0-9]+)/);
+                    if (match) token = match[1];
+                  }
                 }
-                html5QrCode.stop().catch(() => {});
-                onClose();
-                onTokenSubmit(token);
-              },
-              () => {}
-            )
-            .catch(() => {
-              if (onCameraNotice) {
-                onCameraNotice(
-                  'Camera unavailable or permissions needed. Enter the 12-character code below.'
-                );
-              }
-            });
-        } catch (e) {
-          console.warn('Scanner initialization note:', e);
-        }
-      }, 300);
 
-      return () => clearTimeout(timer);
-    } else {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-        scannerRef.current = null;
+                setTimeout(() => {
+                  if (html5QrCode && isScanningRef.current) {
+                    isScanningRef.current = false;
+                    html5QrCode.stop()
+                      .catch((err) => console.warn('Stop error:', err))
+                      .finally(() => {
+                        onClose();
+                        onTokenSubmit(token);
+                      });
+                  } else {
+                    onClose();
+                    onTokenSubmit(token);
+                  }
+                }, 50);
+              } catch (callbackErr) {
+                console.error('[Scanner] Callback error:', callbackErr);
+                onClose();
+              }
+            },
+            () => {}
+          )
+          .then(() => {
+            isScanningRef.current = true;
+          })
+          .catch(() => {
+            if (onCameraNotice) {
+              onCameraNotice(
+                'Camera permissions required or camera unavailable. Enter 12-character Entrance OTP below.'
+              );
+            }
+          });
+      } catch (e) {
+        console.warn('Scanner initialization note:', e);
       }
-    }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      if (html5QrCode) {
+        if (isScanningRef.current) {
+          isScanningRef.current = false;
+          html5QrCode.stop().catch((err) => console.warn('Cleanup stop error:', err));
+        }
+      }
+      scannerRef.current = null;
+    };
   }, [isOpen]);
 
   const handleManualSubmit = (e: React.FormEvent) => {

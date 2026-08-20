@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.auth import require_admin
 from app.database import get_supabase
 from app.models import UpdateConfigRequest, SessionResponse, QRTokenResponse
+from app.config import get_settings
 
 try:
     import qrcode
@@ -43,6 +44,8 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
     global _CURRENT_QR_TOKEN
     now = datetime.now(timezone.utc)
     db = get_supabase()
+    settings = get_settings()
+    frontend_url = settings.frontend_url.rstrip('/')
 
     # 1. Try querying latest token from Supabase qr_tokens table
     if not force_new:
@@ -54,7 +57,7 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
                 remaining = int((expires - now).total_seconds())
 
                 if remaining > 10:
-                    scan_url = f"http://localhost:5500/check-in.html?token={latest['token']}"
+                    scan_url = f"{frontend_url}/check-in?token={latest['token']}"
                     qr_img = generate_python_qr_image(scan_url)
 
                     token_info = {
@@ -84,7 +87,7 @@ def get_or_create_qr_token(force_new: bool = False) -> dict:
     token = secrets.token_hex(6)
     created_at = now.isoformat()
     expires_at = (now + timedelta(minutes=7)).isoformat()
-    scan_url = f"http://localhost:5500/check-in.html?token={token}"
+    scan_url = f"{frontend_url}/check-in?token={token}"
     qr_img = generate_python_qr_image(scan_url)
 
     token_data = {

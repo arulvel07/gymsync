@@ -60,6 +60,9 @@ export const CheckInPage: React.FC = () => {
               } else {
                 setTokenState('valid');
               }
+            }).catch((err) => {
+              console.error('[CheckIn] getActiveSession error:', err);
+              setTokenState('valid');
             });
           }
         }
