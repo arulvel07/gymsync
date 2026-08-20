@@ -110,35 +110,36 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Scan Gym Entrance QR Code">
+    <Modal isOpen={isOpen} onClose={onClose} title="Scan Entrance Code">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Badge variant="blue" className="gap-1">
-            <Camera className="w-3 h-3" /> Live Camera Scanner
+            <Camera className="w-3 h-3" /> Camera Scanner
           </Badge>
           <span className="text-[11px] text-zinc-400">Position QR within frame</span>
         </div>
 
         <div
           id="qr-reader-student-modal"
-          className="w-full rounded-xl overflow-hidden bg-[#09090b] border border-[#27272a] min-h-[220px] flex items-center justify-center text-xs text-zinc-500"
+          className="w-full rounded-xl overflow-hidden bg-[#09090b] border border-white/10 min-h-[220px] flex items-center justify-center text-xs text-[#71717a]"
         />
 
-        <div className="pt-3 border-t border-[#27272a]">
+        <div className="pt-3 border-t border-white/10">
           <form onSubmit={handleManualSubmit} className="space-y-2">
-            <label className="block text-xs text-zinc-400 font-medium flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-zinc-400" />
-              Or enter 12-character Entrance OTP Token:
+            <label htmlFor="manual-otp-input" className="block text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
+              Or enter the 12-character entrance code:
             </label>
             <div className="flex gap-2">
               <Input
+                id="manual-otp-input"
                 placeholder="e.g. 8f92a7c1e43b"
                 className="font-mono lowercase text-xs"
                 value={manualToken}
                 onChange={(e) => setManualToken(e.target.value)}
               />
               <Button variant="primary" size="sm" type="submit">
-                Submit Token
+                Submit Code
               </Button>
             </div>
           </form>

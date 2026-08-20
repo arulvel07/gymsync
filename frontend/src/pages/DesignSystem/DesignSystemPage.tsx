@@ -15,17 +15,34 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
-import { Skeleton, SkeletonText, SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton';
+import { Skeleton, SkeletonText, SkeletonCard, SkeletonTable, SkeletonDistribution } from '@/components/ui/Skeleton';
 import { Spinner, PageLoader } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { GymClosedState } from '@/components/ui/GymClosedState';
 import { OccupancyGauge } from '@/components/ui/OccupancyGauge';
 import { ChartContainer } from '@/components/charts/ChartContainer';
 import { LineChart } from '@/components/charts/LineChart';
 import { BarChart } from '@/components/charts/BarChart';
 import { DoughnutChart } from '@/components/charts/DoughnutChart';
 
-import { Activity, Dumbbell, ShieldCheck, Download, Plus, Trash2, Calendar as CalendarIcon, User } from 'lucide-react';
+import {
+  Activity,
+  Users,
+  Clock,
+  Dumbbell,
+  Calendar as CalendarIcon,
+  QrCode,
+  ShieldCheck,
+  Download,
+  Settings,
+  LogIn,
+  LogOut,
+  Flame,
+  Plus,
+  Trash2,
+  User,
+} from 'lucide-react';
 
 export const DesignSystemPage: React.FC = () => {
   const toast = useToast();
@@ -101,33 +118,33 @@ export const DesignSystemPage: React.FC = () => {
       <section className="space-y-4">
         <h2 className="text-h2 font-bold text-[#fafafa]">1. Color System</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-          <div className="p-4 rounded-md bg-[#09090b] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-[#09090b] border border-white/20" />
+          <div className="p-4 rounded-lg bg-[#09090b] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-[#09090b] border border-white/20" />
             <div className="text-xs font-semibold text-[#fafafa]">Background</div>
             <div className="text-[10px] text-[#71717a]">#09090b</div>
           </div>
-          <div className="p-4 rounded-md bg-[#121215] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-[#121215] border border-white/20" />
+          <div className="p-4 rounded-lg bg-[#121215] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-[#121215] border border-white/20" />
             <div className="text-xs font-semibold text-[#fafafa]">Surface</div>
             <div className="text-[10px] text-[#71717a]">#121215</div>
           </div>
-          <div className="p-4 rounded-md bg-[#1f1f24] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-[#1f1f24] border border-white/20" />
+          <div className="p-4 rounded-lg bg-[#1f1f24] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-[#1f1f24] border border-white/20" />
             <div className="text-xs font-semibold text-[#fafafa]">Elevated</div>
             <div className="text-[10px] text-[#71717a]">#1f1f24</div>
           </div>
-          <div className="p-4 rounded-md bg-[#121215] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-blue-600" />
+          <div className="p-4 rounded-lg bg-[#121215] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-blue-600" />
             <div className="text-xs font-semibold text-blue-400">Accent</div>
             <div className="text-[10px] text-[#71717a]">#3b82f6</div>
           </div>
-          <div className="p-4 rounded-md bg-[#121215] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-emerald-600" />
+          <div className="p-4 rounded-lg bg-[#121215] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-emerald-600" />
             <div className="text-xs font-semibold text-emerald-400">Success</div>
             <div className="text-[10px] text-[#71717a]">#10b981</div>
           </div>
-          <div className="p-4 rounded-md bg-[#121215] border border-white/10 space-y-2">
-            <div className="w-full h-8 rounded bg-red-600" />
+          <div className="p-4 rounded-lg bg-[#121215] border border-white/10 space-y-2">
+            <div className="w-full h-8 rounded-md bg-red-600" />
             <div className="text-xs font-semibold text-red-400">Danger</div>
             <div className="text-[10px] text-[#71717a]">#ef4444</div>
           </div>
@@ -418,31 +435,74 @@ export const DesignSystemPage: React.FC = () => {
 
       {/* 9. Loading & Skeletons */}
       <section className="space-y-4">
-        <h2 className="text-h2 font-bold text-[#fafafa]">9. Loading Systems & Skeletons</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h2 className="text-h2 font-bold text-[#fafafa]">9. Intentional Skeletons</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <SkeletonCard />
           <SkeletonTable rows={3} cols={3} />
+          <Card className="p-6">
+            <div className="text-xs uppercase font-bold text-zinc-400 mb-3">Workout Distribution Skeleton</div>
+            <SkeletonDistribution items={4} />
+          </Card>
         </div>
       </section>
 
-      {/* 10. Empty & Error States */}
+      {/* 10. Contextual Empty & Error States */}
       <section className="space-y-4">
-        <h2 className="text-h2 font-bold text-[#fafafa]">10. Empty & Error States</h2>
+        <h2 className="text-h2 font-bold text-[#fafafa]">10. Contextual Empty & Error States</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <EmptyState
-              title="NO UPCOMING WORKOUTS"
+              title="No upcoming workouts"
               description="Your schedule is clear. Plan your next session to keep your routine on track."
               primaryAction={<Button size="sm">Plan a workout</Button>}
             />
           </Card>
           <Card>
-            <ErrorState
-              title="WE COULDN'T LOAD YOUR ACTIVITY"
-              message="Your data is safe. We just couldn't reach the gym server."
-              onRetry={() => alert('Retrying...')}
+            <EmptyState
+              title="No attendance records found"
+              description="Try changing your search or filters."
+              primaryAction={<Button variant="secondary" size="sm">Clear filters</Button>}
             />
           </Card>
+          <Card>
+            <ErrorState
+              title="Unable to load activity"
+              message="Your data is safe. We just couldn't reach the gym server."
+              onRetry={() => alert('Retrying activity...')}
+            />
+          </Card>
+          <Card>
+            <ErrorState
+              title="Unable to load workout plan"
+              message="Your workout plans are safe. We just couldn't reach the gym server."
+              onRetry={() => alert('Retrying plan...')}
+            />
+          </Card>
+        </div>
+      </section>
+
+      {/* 11. Gym Closed States */}
+      <section className="space-y-4">
+        <h2 className="text-h2 font-bold text-[#fafafa]">11. Gym Closed States</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <GymClosedState
+            title="Gym Closed"
+            closingTime="10:00 PM"
+            nextAvailableDate="Tomorrow"
+            nextAvailableTime="6:00 AM"
+            onViewSchedule={() => alert('Opening schedule...')}
+          />
+          <div className="space-y-4">
+            <Card className="p-4">
+              <div className="text-xs font-bold text-zinc-400 mb-2">Inline Closed Banner</div>
+              <GymClosedState
+                variant="inline"
+                title="Gym Closed"
+                closingTime="10:00 PM"
+                onViewSchedule={() => alert('Opening schedule...')}
+              />
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -457,6 +517,61 @@ export const DesignSystemPage: React.FC = () => {
             <DoughnutChart data={sampleWorkoutDist} />
           </ChartContainer>
         </div>
+      </section>
+
+      {/* 12. Standardized Iconography System */}
+      <section className="space-y-4">
+        <h2 className="text-h2 font-bold text-[#fafafa]">12. Standardized Iconography System</h2>
+        <Card className="p-6">
+          <p className="text-xs text-[#a1a1aa] mb-6 leading-relaxed">
+            GymSync uses <strong className="text-white">Lucide React</strong> exclusively across all operational screens. Icons are strictly kept small (<code className="text-blue-400 font-mono">14px–18px</code>), visually restrained, and reserved for establishing information hierarchy or indicating state.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {[
+              { icon: Activity, name: 'Activity', size: '16px', role: 'Activity / Cardio' },
+              { icon: Users, name: 'Users', size: '16px', role: 'Headcount / Capacity' },
+              { icon: Clock, name: 'Clock', size: '16px', role: 'Duration / Shift' },
+              { icon: Dumbbell, name: 'Dumbbell', size: '16px', role: 'Workout Focus' },
+              { icon: CalendarIcon, name: 'Calendar', size: '16px', role: 'Planner / History' },
+              { icon: QrCode, name: 'QrCode', size: '16px', role: 'Entrance / Kiosk' },
+              { icon: ShieldCheck, name: 'ShieldCheck', size: '16px', role: 'Admin Verification' },
+              { icon: Download, name: 'Download', size: '16px', role: 'CSV Export' },
+              { icon: Settings, name: 'Settings', size: '16px', role: 'Facility Config' },
+              { icon: LogIn, name: 'LogIn', size: '16px', role: 'Sign In Action' },
+              { icon: LogOut, name: 'LogOut', size: '16px', role: 'Sign Out Action' },
+              { icon: Flame, name: 'Flame', size: '16px', role: 'Legs / High Load' },
+            ].map((item) => {
+              const IconComp = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="p-3.5 rounded-lg bg-[#18181c] border border-white/5 flex flex-col items-center text-center gap-2"
+                >
+                  <div className="w-8 h-8 rounded bg-white/5 border border-white/10 flex items-center justify-center text-blue-400">
+                    <IconComp size={16} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-[#fafafa]">{item.name}</div>
+                    <div className="text-[0.68rem] font-mono text-[#71717a]">{item.role}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-6 text-xs text-[#a1a1aa]">
+            <div>
+              <span className="font-semibold text-white">Rule 1:</span> Small sizing (<code className="text-blue-400">w-3.5 h-3.5</code> or <code className="text-blue-400">w-4 h-4</code>).
+            </div>
+            <div>
+              <span className="font-semibold text-white">Rule 2:</span> Inherit text color or use semantic state colors (Green/Amber/Red).
+            </div>
+            <div>
+              <span className="font-semibold text-white">Rule 3:</span> Set <code className="text-blue-400">aria-hidden="true"</code> on decorative icons.
+            </div>
+          </div>
+        </Card>
       </section>
     </div>
   );

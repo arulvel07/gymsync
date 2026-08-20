@@ -24,16 +24,16 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   const endStr = formatDate(weekEndDate.toISOString().split('T')[0]);
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-[#27272a]">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-white/10">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-[#fafafa] flex items-center gap-2.5">
             <CalendarIcon className="w-6 h-6 text-blue-400" />
-            Your Plan
+            Workout Planner
           </h1>
         </div>
-        <p className="text-xs text-zinc-400 mt-1">
-          Plan your workouts and choose the best time to train.
+        <p className="text-xs text-[#a1a1aa] mt-1">
+          Plan your weekly workouts and see expected crowd levels before choosing a time.
         </p>
       </div>
 

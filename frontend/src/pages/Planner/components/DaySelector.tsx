@@ -44,8 +44,8 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
 
       <div
         ref={scrollRef}
-        className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory touch-pan-x"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {weekDays.map((day) => {
           const plan = planMap.get(day.dateStr);
@@ -60,7 +60,9 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
               type="button"
               data-selected={isSelected}
               onClick={() => onSelectDate(day.dateStr)}
-              className={`snap-center shrink-0 min-w-[76px] px-3 py-2.5 rounded-xl border transition-all text-center flex flex-col items-center justify-between cursor-pointer focus:outline-none ${
+              aria-pressed={isSelected}
+              aria-label={`${day.shortName}, ${day.dayOfMonth}. ${workoutName ? `Planned workout: ${workoutName}` : 'No workout planned'}${day.isToday ? ', Today' : ''}`}
+              className={`snap-center shrink-0 min-w-[76px] min-h-[72px] px-3 py-2.5 rounded-xl border transition-all text-center flex flex-col items-center justify-between cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 isSelected
                   ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-900/30'
                   : day.isToday
@@ -68,22 +70,22 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
                   : 'bg-[#121215] border-white/10 text-zinc-400 hover:text-white'
               }`}
             >
-              <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+              <div className="text-[10px] font-bold uppercase tracking-wider opacity-80" aria-hidden="true">
                 {day.shortName}
               </div>
 
-              <div className="text-base font-bold font-mono my-0.5">
+              <div className="text-base font-bold font-mono my-0.5" aria-hidden="true">
                 {day.dayOfMonth}
               </div>
 
-              <div className="h-4 flex items-center justify-center">
+              <div className="h-4 flex items-center justify-center" aria-hidden="true">
                 {workoutName ? (
                   <div
                     className={`text-[9px] px-1.5 py-0.2 rounded-full flex items-center gap-0.5 truncate max-w-[64px] ${
                       isSelected ? 'bg-white/20 text-white font-semibold' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                     }`}
                   >
-                    <Dumbbell className="w-2.5 h-2.5 shrink-0" />
+                    <Dumbbell className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
                     <span className="truncate">{workoutName}</span>
                   </div>
                 ) : (

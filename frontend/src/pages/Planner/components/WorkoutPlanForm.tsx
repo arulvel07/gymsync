@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { WORKOUT_TYPES } from '@/lib/constants';
-import { formatDate, formatHour } from '@/lib/utils';
-import type { WorkoutPlan } from '@/types';
+import { formatDate, formatHour, getOccupancyLevel } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/Skeleton';
+import type { WorkoutPlan, CrowdForecastResponse } from '@/types';
 import {
   Calendar,
   Clock,
@@ -18,6 +19,7 @@ import {
   Activity,
   PlusCircle,
   Save,
+  Users,
 } from 'lucide-react';
 
 interface WorkoutPlanFormProps {
@@ -28,6 +30,8 @@ interface WorkoutPlanFormProps {
   onTimeSlotChange: (timeSlot: number) => void;
   onSavePlan: (date: string, timeSlot: number, workout: string, notes?: string) => Promise<void>;
   onDeletePlan: (date: string) => Promise<void>;
+  forecast?: CrowdForecastResponse | null;
+  forecastLoading?: boolean;
   loading?: boolean;
 }
 
@@ -70,6 +74,8 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
   onTimeSlotChange,
   onSavePlan,
   onDeletePlan,
+  forecast,
+  forecastLoading = false,
   loading = false,
 }) => {
   const [selectedWorkout, setSelectedWorkout] = useState<string>('Push');
@@ -125,14 +131,14 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
 
   return (
     <Card className="h-full flex flex-col justify-between">
-      <CardHeader className="pb-4 border-b border-[#27272a]">
+      <CardHeader className="pb-4 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5 mb-1">
+            <div className="text-[11px] uppercase tracking-wider text-[#71717a] font-semibold flex items-center gap-1.5 mb-1">
               <Calendar className="w-3.5 h-3.5 text-blue-400" />
               Plan A Workout
             </div>
-            <CardTitle className="text-lg font-bold text-white">
+            <CardTitle className="text-lg font-bold text-[#fafafa]">
               {formattedDateTitle}
             </CardTitle>
           </div>
@@ -159,11 +165,15 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
 
             {/* Workout Selection Pills / Grid */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+              <label className="block text-xs font-semibold text-[#a1a1aa] mb-2">
                 Workout Focus
               </label>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+                role="group"
+                aria-label="Select workout focus"
+              >
                 {WORKOUT_TYPES.map((type) => {
                   const isSelected = selectedWorkout === type;
                   return (
@@ -171,13 +181,14 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
                       key={type}
                       type="button"
                       onClick={() => setSelectedWorkout(type)}
+                      aria-pressed={isSelected}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                         isSelected
                           ? 'bg-blue-600/20 border-blue-500 text-blue-400 font-semibold shadow-sm'
-                          : 'bg-[#18181b] border-[#27272a] text-zinc-300 hover:border-zinc-700 hover:text-white'
+                          : 'bg-[#18181c] border-white/10 text-zinc-300 hover:border-white/20 hover:text-white'
                       }`}
                     >
-                      <span className={isSelected ? 'text-blue-400' : 'text-zinc-500'}>
+                      <span className={isSelected ? 'text-blue-400' : 'text-[#71717a]'} aria-hidden="true">
                         {getWorkoutIcon(type)}
                       </span>
                       <span className="truncate">{type}</span>
@@ -212,6 +223,31 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
               ))}
             </Select>
 
+            {/* Expected Crowd Indicator */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/10">
+              <div className="text-xs text-[#a1a1aa] font-semibold flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-blue-400" />
+                <span>Expected crowd</span>
+              </div>
+              {forecastLoading ? (
+                <Skeleton height="20px" width="70px" />
+              ) : forecast ? (
+                <Badge
+                  variant={
+                    getOccupancyLevel(forecast.predicted_percentage).class === 'low'
+                      ? 'green'
+                      : getOccupancyLevel(forecast.predicted_percentage).class === 'moderate'
+                      ? 'amber'
+                      : 'red'
+                  }
+                >
+                  {getOccupancyLevel(forecast.predicted_percentage).label}
+                </Badge>
+              ) : (
+                <span className="text-xs text-[#71717a]">—</span>
+              )}
+            </div>
+
             {/* Workout Notes */}
             <Input
               label="Workout Notes (Optional)"
@@ -222,7 +258,7 @@ export const WorkoutPlanForm: React.FC<WorkoutPlanFormProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-[#27272a] flex items-center justify-between gap-3">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3">
             {existingPlan ? (
               <>
                 <Button

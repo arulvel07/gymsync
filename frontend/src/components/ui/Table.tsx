@@ -2,16 +2,23 @@ import React, { HTMLAttributes, TableHTMLAttributes } from 'react';
 
 export interface TableProps extends TableHTMLAttributes<HTMLTableElement> {
   containerClassName?: string;
+  label?: string;
 }
 
 export const Table: React.FC<TableProps> = ({
   children,
   className = '',
   containerClassName = '',
+  label = 'Data table',
   ...props
 }) => {
   return (
-    <div className={`w-full overflow-x-auto rounded-md border border-white/10 ${containerClassName}`}>
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label={label}
+      className={`w-full overflow-x-auto rounded-xl border border-white/10 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${containerClassName}`}
+    >
       <table className={`w-full border-collapse text-left text-sm ${className}`} {...props}>
         {children}
       </table>
@@ -25,20 +32,24 @@ export const TableHeader: React.FC<HTMLAttributes<HTMLTableSectionElement>> = ({
   ...props
 }) => {
   return (
-    <thead className={`bg-[#121215] border-b border-white/10 ${className}`} {...props}>
+    <thead className={`bg-[#18181c] border-b border-white/10 ${className}`} {...props}>
       {children}
     </thead>
   );
 };
 
-export const TableHead: React.FC<HTMLAttributes<HTMLTableCellElement>> = ({
+export interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {}
+
+export const TableHead: React.FC<TableHeadProps> = ({
   children,
+  scope = 'col',
   className = '',
   ...props
 }) => {
   return (
     <th
-      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[#71717a] select-none whitespace-nowrap ${className}`}
+      scope={scope}
+      className={`px-4 py-3 sm:px-5 sm:py-3.5 text-xs font-semibold uppercase tracking-wider text-[#71717a] select-none whitespace-nowrap ${className}`}
       {...props}
     >
       {children}
@@ -70,7 +81,7 @@ export const TableRow: React.FC<TableRowProps> = ({
 }) => {
   return (
     <tr
-      className={`transition-colors duration-150 hover:bg-[#18181c] ${
+      className={`transition-colors duration-150 hover:bg-white/[0.02] ${
         selected ? 'bg-blue-500/10' : ''
       } ${className}`}
       {...props}
@@ -86,7 +97,7 @@ export const TableCell: React.FC<HTMLAttributes<HTMLTableCellElement>> = ({
   ...props
 }) => {
   return (
-    <td className={`px-4 py-3 text-sm text-[#a1a1aa] align-middle ${className}`} {...props}>
+    <td className={`px-4 py-3 sm:px-5 sm:py-3.5 text-sm text-[#a1a1aa] align-middle ${className}`} {...props}>
       {children}
     </td>
   );

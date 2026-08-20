@@ -1,12 +1,13 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/Table';
+import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
-import { formatDate, formatTime, formatDuration } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, parseUTC } from '@/lib/utils';
 import type { GymSession } from '@/types';
-import { Activity, Calendar, Clock, Dumbbell } from 'lucide-react';
+import { Activity, Calendar, Clock, Dumbbell, Plus } from 'lucide-react';
 
 interface PersonalActivityPanelProps {
   history: GymSession[];
@@ -26,7 +27,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
     const currentYear = now.getFullYear();
 
     return history.filter((s) => {
-      const d = new Date(s.check_in.replace('Z', '+00:00'));
+      const d = parseUTC(s.check_in);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     }).length;
   }, [history]);
@@ -40,28 +41,28 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
   }, [history]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4 border-b border-[#27272a]">
+    <Card id="activity" tabIndex={-1} className="w-full scroll-mt-20 focus:outline-none">
+      <CardHeader className="pb-4 border-b border-white/10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-sm uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-400" />
-              Personal Activity & History
+              Your Activity
             </CardTitle>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Review your recent training sessions at the campus facility.
+            <p className="text-xs text-[#a1a1aa] mt-0.5">
+              Review your recent training sessions and visits.
             </p>
           </div>
 
           {/* Activity summary metrics */}
           <div className="flex items-center gap-3">
-            <div className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-center">
-              <div className="text-[10px] uppercase text-zinc-500 font-semibold">This Month</div>
+            <div className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/10 text-center">
+              <div className="text-[10px] uppercase text-[#71717a] font-semibold">This Month</div>
               <div className="text-xs font-bold text-white">{currentMonthVisits} visits</div>
             </div>
             {avgDuration !== null && (
-              <div className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-center">
-                <div className="text-[10px] uppercase text-zinc-500 font-semibold">Avg Session</div>
+              <div className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/10 text-center">
+                <div className="text-[10px] uppercase text-[#71717a] font-semibold">Avg Session</div>
                 <div className="text-xs font-bold text-white">{formatDuration(avgDuration)}</div>
               </div>
             )}
@@ -78,17 +79,18 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
           <div className="py-8">
             <EmptyState
               icon={<Dumbbell className="w-8 h-8 text-zinc-500" />}
-              title="No Recent Activity"
-              description="You haven't completed any gym sessions yet. Check in when you train to start building your log."
+              title="No Recent Workouts"
+              description="Your workout log is clear. Check in when you train to start tracking your sessions."
               primaryAction={
                 onCheckInRequest ? (
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={onCheckInRequest}
-                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
+                    iconLeft={<Plus className="w-3.5 h-3.5" />}
                   >
                     Check In Now
-                  </button>
+                  </Button>
                 ) : undefined
               }
             />
@@ -97,7 +99,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
           <div>
             {/* Desktop Table View */}
             <div className="hidden md:block">
-              <Table>
+              <Table label="Personal activity history table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
@@ -111,7 +113,7 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
                   {history.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium text-white flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                        <Calendar className="w-3.5 h-3.5 text-[#71717a]" aria-hidden="true" />
                         {formatDate(s.check_in)}
                       </TableCell>
                       <TableCell>{formatTime(s.check_in)}</TableCell>
@@ -139,14 +141,14 @@ export const PersonalActivityPanel: React.FC<PersonalActivityPanelProps> = ({
               {history.map((s) => (
                 <div
                   key={s.id}
-                  className="p-3 rounded-lg bg-[#18181b] border border-[#27272a] flex items-center justify-between"
+                  className="p-3 rounded-lg bg-white/[0.02] border border-white/10 flex items-center justify-between"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-white">{s.workout_type}</span>
                       {!s.check_out && <Badge variant="green">Active</Badge>}
                     </div>
-                    <div className="text-[11px] text-zinc-400 flex items-center gap-2">
+                    <div className="text-[11px] text-[#a1a1aa] flex items-center gap-2">
                       <span>{formatDate(s.check_in)}</span>
                       <span>·</span>
                       <span>{formatTime(s.check_in)}</span>

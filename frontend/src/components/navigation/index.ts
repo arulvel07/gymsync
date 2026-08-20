@@ -6,3 +6,5 @@ export { StudentMobileNav } from './StudentMobileNav';
 export { AdminSidebar } from './AdminSidebar';
 export { AdminMobileNav } from './AdminMobileNav';
 export { AppHeader } from './AppHeader';
+export { UserProfileModal } from './UserProfileModal';
+

@@ -19,11 +19,45 @@
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Safe area and touch target utilities */
+  .support-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* Custom Focus Ring for Keyboard Navigation */
   :focus-visible {
     outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Skip link for screen-reader & keyboard navigation */
+  .skip-link {
+    position: absolute;
+    top: -9999px;
+    left: 16px;
+    z-index: 9999;
+    padding: 10px 16px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    transition: top 0.15s ease-in-out;
+  }
+
+  .skip-link:focus {
+    top: 16px;
+    outline: 2px solid #ffffff;
     outline-offset: 2px;
   }
 
@@ -134,7 +168,7 @@
   border-width: 0;
 }
 
-/* Route & Modal Transitions */
+/* Route, Toast & Operational Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -155,19 +189,52 @@
   }
 }
 
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn var(--motion-fast) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp var(--motion-normal) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-slide-in {
+  animation: toastSlideIn var(--motion-normal) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
-  .animate-fade-in-up {
+  .animate-fade-in-up,
+  .animate-toast-slide-in,
+  .animate-pulse-subtle,
+  .animate-spin,
+  .animate-pulse {
     animation: none !important;
     transition: none !important;
   }
 }
+
 

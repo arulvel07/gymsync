@@ -153,8 +153,8 @@ export function getDensityBlocks(percentage: number): { filled: number; total: n
 /**
  * Client-side CSV exporter.
  */
-export function exportToCSV<T extends Record<string, unknown>>(data: T[], filename = 'export.csv') {
-  if (!data.length) return;
+export function exportToCSV<T extends Record<string, unknown>>(data: T[], filename = 'export.csv'): boolean {
+  if (!data || !data.length) return false;
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),
@@ -162,20 +162,30 @@ export function exportToCSV<T extends Record<string, unknown>>(data: T[], filena
       headers
         .map((h) => {
           let val = row[h] ?? '';
-          if (typeof val === 'string' && val.includes(',')) {
-            val = `"${val}"`;
+          if (typeof val === 'string') {
+            if (val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+              val = `"${val.replace(/"/g, '""')}"`;
+            }
           }
           return val;
         })
         .join(',')
     ),
-  ].join('\n');
+  ].join('\r\n');
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.display = 'none';
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(link.href);
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
+  return true;
 }
+
 

@@ -20,7 +20,7 @@ export const WorkoutDistribution: React.FC<WorkoutDistributionProps> = ({
 
   return (
     <ChartContainer
-      title="WORKOUT FOCUS"
+      title="Workout Focus Breakdown"
       description={`Share of workout categories (${days} days)`}
       loading={loading}
       empty={!hasData}

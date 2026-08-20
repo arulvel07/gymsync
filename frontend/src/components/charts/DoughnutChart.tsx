@@ -8,7 +8,7 @@ import {
 import { Doughnut } from 'react-chartjs-2';
 import type { WorkoutDistributionItem } from '@/types';
 import { getWorkoutColor } from '@/lib/constants';
-import { chartDarkTheme } from './chartConfig';
+import { chartDarkTheme, commonAnimationOptions } from './chartConfig';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -30,6 +30,7 @@ export const DoughnutChart: React.FC<{ data: WorkoutDistributionItem[] }> = ({ d
     responsive: true,
     maintainAspectRatio: false,
     cutout: '70%',
+    animation: commonAnimationOptions,
     plugins: {
       legend: {
         position: 'bottom' as const,
@@ -53,9 +54,34 @@ export const DoughnutChart: React.FC<{ data: WorkoutDistributionItem[] }> = ({ d
     },
   };
 
+  const totalCount = data.reduce((acc, curr) => acc + curr.count, 0) || 1;
+
   return (
-    <div className="h-full w-full">
-      <Doughnut data={chartData} options={options} />
+    <div className="h-full w-full relative">
+      <div className="sr-only">
+        <table>
+          <caption>Workout Distribution Breakdown</caption>
+          <thead>
+            <tr>
+              <th scope="col">Workout Type</th>
+              <th scope="col">Session Count</th>
+              <th scope="col">Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.workout_type}>
+                <td>{d.workout_type}</td>
+                <td>{d.count}</td>
+                <td>{d.percentage ?? Math.round((d.count / totalCount) * 100)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="h-full w-full" aria-hidden="true">
+        <Doughnut data={chartData} options={options} />
+      </div>
     </div>
   );
 };

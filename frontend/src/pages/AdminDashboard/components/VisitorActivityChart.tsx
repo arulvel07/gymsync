@@ -37,7 +37,7 @@ export const VisitorActivityChart: React.FC<VisitorActivityChartProps> = ({
   return (
     <div className="mb-6">
       <ChartContainer
-        title="VISITOR ACTIVITY"
+        title="Visitor Activity"
         description={`Daily headcount trend over the last ${days} days`}
         loading={loading}
         empty={!hasData}

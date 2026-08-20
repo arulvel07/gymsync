@@ -19,7 +19,7 @@ export const PeakHoursChart: React.FC<PeakHoursChartProps> = ({
 
   return (
     <ChartContainer
-      title="WHEN IS THE GYM BUSIEST?"
+      title="Hourly Visitor Density"
       description={`Average visitor volume per hour (${days}-day average)`}
       loading={loading}
       empty={!hasData}

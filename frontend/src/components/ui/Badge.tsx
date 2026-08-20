@@ -22,7 +22,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span className={`badge ${variantClasses[variant]} ${className}`} {...props}>
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && <span className="flex-shrink-0" aria-hidden="true">{icon}</span>}
       <span>{children}</span>
     </span>
   );

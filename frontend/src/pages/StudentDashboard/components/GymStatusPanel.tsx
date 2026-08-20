@@ -3,6 +3,7 @@ import { OccupancyGauge } from '@/components/ui/OccupancyGauge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { StatusIndicator } from '@/components/ui/StatusIndicator';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { GymClosedState } from '@/components/ui/GymClosedState';
 import { getOccupancyLevel } from '@/lib/utils';
 import type { OccupancyResponse } from '@/types';
 import { Users, AlertCircle, Clock } from 'lucide-react';
@@ -28,7 +29,7 @@ export const GymStatusPanel: React.FC<GymStatusPanelProps> = ({ occupancy, loadi
     <Card className="h-full flex flex-col justify-between">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-blue-400" />
             Gym Availability
           </CardTitle>
@@ -50,22 +51,21 @@ export const GymStatusPanel: React.FC<GymStatusPanelProps> = ({ occupancy, loadi
 
         {/* Status context callouts */}
         {!isOpen && (
-          <div className="w-full mt-4 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2 justify-center">
-            <Clock className="w-4 h-4 shrink-0" />
-            <span>Facility currently closed for public entry.</span>
+          <div className="w-full mt-4">
+            <GymClosedState variant="inline" />
           </div>
         )}
 
         {isOpen && isFull && (
           <div className="w-full mt-4 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-center gap-2 justify-center">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>Facility at max capacity ({maxCapacity}/{maxCapacity}). Wait for check-outs.</span>
+            <span>The gym is at full capacity ({maxCapacity}/{maxCapacity}). Please check back shortly.</span>
           </div>
         )}
       </CardContent>
 
-      <div className="pt-3 border-t border-[#27272a] flex items-center justify-between text-xs text-zinc-400 px-5 pb-4">
-        <span>Traffic Density:</span>
+      <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-[#a1a1aa] px-5 pb-4">
+        <span>Traffic:</span>
         <span className="font-semibold" style={{ color: isOpen ? level.color : '#ef4444' }}>
           {isOpen ? level.label : 'Closed'}
         </span>

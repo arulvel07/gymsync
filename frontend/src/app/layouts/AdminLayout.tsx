@@ -8,6 +8,11 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#09090b] text-[#fafafa] selection:bg-blue-500/30 selection:text-blue-200">
+      {/* Skip to Main Content Link */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       {/* Top Application Header */}
       <AppHeader
         variant="admin"
@@ -26,7 +31,7 @@ export const AdminLayout: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 lg:ml-60 p-4 sm:p-6 lg:p-8 w-full min-w-0 pb-16">
+        <main id="main-content" tabIndex={-1} className="flex-1 lg:ml-60 p-4 sm:p-6 lg:p-8 w-full min-w-0 pb-16 focus:outline-none">
           <PageTransition>
             <Outlet />
           </PageTransition>
