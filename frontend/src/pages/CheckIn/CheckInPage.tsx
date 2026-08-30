@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { attendanceApi } from '@/services/api/attendance';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { WORKOUT_TYPES, getWorkoutIcon } from '@/lib/constants';
@@ -19,7 +20,7 @@ export const CheckInPage: React.FC = () => {
   const [expiredMsg, setExpiredMsg] = useState('Please scan the latest QR displayed at the gym.');
   const [token, setToken] = useState<string | null>(null);
 
-  const [selectedWorkout, setSelectedWorkout] = useState<string>('Chest');
+  const [selectedWorkout, setSelectedWorkout] = useState<string>('Push');
   const [customWorkout, setCustomWorkout] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +31,7 @@ export const CheckInPage: React.FC = () => {
     }
 
     if (!t) {
-      setExpiredMsg('❌ No QR Token Provided. Please scan the QR code at the gym entrance.');
+      setExpiredMsg('No QR Token Provided. Please scan the QR code at the gym entrance.');
       setTokenState('expired');
       return;
     }
@@ -42,7 +43,7 @@ export const CheckInPage: React.FC = () => {
       .validateQRToken(t)
       .then((valRes) => {
         if (!valRes || !valRes.valid) {
-          setExpiredMsg(valRes?.message || '❌ QR Code Expired. Please scan the latest QR displayed at the gym.');
+          setExpiredMsg(valRes?.message || 'QR Code Expired. Please scan the latest QR displayed at the gym.');
           setTokenState('expired');
         } else {
           // If token is valid but user is not authenticated, store token and redirect to login
@@ -67,7 +68,7 @@ export const CheckInPage: React.FC = () => {
         }
       })
       .catch(() => {
-        setExpiredMsg('❌ QR Code Expired. Please scan the latest QR displayed at the gym.');
+        setExpiredMsg('QR Code Expired. Please scan the latest QR displayed at the gym.');
         setTokenState('expired');
       });
   }, [searchParams, session, navigate]);
@@ -102,46 +103,57 @@ export const CheckInPage: React.FC = () => {
       <div className="w-full max-w-[460px]">
         {/* State 1: Loading */}
         {tokenState === 'loading' && (
-          <div className="glass-card p-8 text-center">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <h2 className="text-base font-semibold mb-1.5">Validating Entrance QR Code...</h2>
-            <p className="text-xs text-[#a1a1aa]">Verifying dynamic token expiration with backend telemetry.</p>
-          </div>
+          <Card className="p-8 text-center" role="status" aria-live="polite">
+            <div
+              className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+              aria-hidden="true"
+            />
+            <h2 className="text-base font-semibold mb-1.5">Checking Entrance Code...</h2>
+            <p className="text-xs text-[#a1a1aa]">Verifying your entrance code with the gym server.</p>
+          </Card>
         )}
 
         {/* State 2: Expired */}
         {tokenState === 'expired' && (
-          <div className="glass-card p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-rose-500/15 border border-rose-500 flex items-center justify-center mx-auto mb-5 text-rose-400">
-              <AlertTriangle size={32} />
+          <Card className="p-8 text-center" role="alert">
+            <div
+              className="w-16 h-16 rounded-full bg-rose-500/15 border border-rose-500 flex items-center justify-center mx-auto mb-5 text-rose-400"
+              aria-hidden="true"
+            >
+              <AlertTriangle size={32} aria-hidden="true" />
             </div>
-            <h1 className="text-xl font-bold text-rose-400 mb-2.5">❌ QR Code Expired</h1>
+            <h1 className="text-xl font-bold text-rose-400 mb-2.5">QR Code Expired</h1>
             <p className="text-xs text-[#a1a1aa] leading-relaxed mb-6">{expiredMsg}</p>
-            <Button variant="secondary" className="w-full py-2.5" onClick={() => navigate('/dashboard')}>
-              Return to Student Dashboard
+            <Button variant="secondary" className="w-full py-2.5" onClick={() => navigate(session ? '/dashboard' : '/')}>
+              Return to Home
             </Button>
-          </div>
+          </Card>
         )}
 
         {/* State 3: Valid Token — Select Workout Focus */}
         {tokenState === 'valid' && (
-          <div className="glass-card p-7 text-center">
+          <Card className="p-7 text-center">
             <div className="mb-5">
-              <Badge variant="green" className="mb-2">● Valid Entrance QR Token</Badge>
-              <h1 className="text-xl font-bold gradient-text">Select Workout Focus & Check In</h1>
-              <p className="text-xs text-[#a1a1aa] mt-1">Instant digital entrance check-in.</p>
+              <Badge variant="green" className="mb-2">● Entrance Code Verified</Badge>
+              <h1 className="text-xl font-bold text-[#fafafa] tracking-tight">What are you working today?</h1>
+              <p className="text-xs text-[#a1a1aa] mt-1">Choose your workout to complete check-in.</p>
             </div>
 
             {/* Workout Pills */}
-            <div className="flex flex-wrap gap-2 justify-center mb-5">
+            <div
+              className="flex flex-wrap gap-2 justify-center mb-5"
+              role="group"
+              aria-label="Workout focus categories"
+            >
               {WORKOUT_TYPES.map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => setSelectedWorkout(type)}
-                  className={`workout-pill ${selectedWorkout === type ? 'active' : ''}`}
+                  aria-pressed={selectedWorkout === type}
+                  className={`workout-pill ${selectedWorkout === type ? 'active' : ''} focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
                 >
-                  <span>{getWorkoutIcon(type)}</span>
+                  <span className="flex items-center" aria-hidden="true">{getWorkoutIcon(type, "w-4 h-4")}</span>
                   <span>{type}</span>
                 </button>
               ))}
@@ -164,26 +176,29 @@ export const CheckInPage: React.FC = () => {
               onClick={handleConfirmCheckIn}
               loading={loading}
             >
-              Confirm Entrance Check-In
+              Check In Now
             </Button>
-          </div>
+          </Card>
         )}
 
         {/* State 4: Success */}
         {tokenState === 'success' && (
-          <div className="glass-card p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500 flex items-center justify-center mx-auto mb-5 text-emerald-400">
-              <CheckCircle2 size={32} />
+          <Card className="p-8 text-center" role="status" aria-live="polite">
+            <div
+              className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500 flex items-center justify-center mx-auto mb-5 text-emerald-400"
+              aria-hidden="true"
+            >
+              <CheckCircle2 size={32} aria-hidden="true" />
             </div>
             <Badge variant="green" className="mb-2">● Session Active</Badge>
-            <h1 className="text-2xl font-extrabold text-emerald-400 mb-1.5">Checked In Successfully!</h1>
+            <h1 className="text-2xl font-extrabold text-emerald-400 mb-1.5">You're Checked In!</h1>
             <p className="text-sm text-[#fafafa] font-semibold mb-5">
-              Training Focus: {selectedWorkout === 'Others' ? customWorkout : selectedWorkout}
+              Workout: {selectedWorkout === 'Others' ? customWorkout : selectedWorkout}
             </p>
             <Button variant="primary" className="w-full py-2.5" onClick={() => navigate('/dashboard')}>
-              View Live Dashboard
+              Go to Dashboard
             </Button>
-          </div>
+          </Card>
         )}
       </div>
     </div>

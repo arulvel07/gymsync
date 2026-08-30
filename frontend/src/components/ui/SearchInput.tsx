@@ -17,16 +17,16 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        startIcon={<Search className="w-4 h-4" />}
+        startIcon={<Search className="w-4 h-4" aria-hidden="true" />}
         endIcon={
           hasValue && onClear ? (
             <button
               type="button"
               onClick={onClear}
-              className="p-0.5 rounded text-[#71717a] hover:text-[#fafafa] hover:bg-white/10 focus:outline-none transition-colors"
+              className="p-0.5 rounded text-[#71717a] hover:text-[#fafafa] hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
               aria-label="Clear search"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           ) : undefined
         }

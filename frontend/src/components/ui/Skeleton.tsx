@@ -9,7 +9,7 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 export const Skeleton: React.FC<SkeletonProps> = ({
   height,
   width,
-  rounded = 'rounded-md',
+  rounded = 'rounded-lg',
   className = '',
   style,
   ...props
@@ -18,6 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     <div
       className={`animate-pulse bg-white/5 ${rounded} ${className}`}
       style={{ height, width, ...style }}
+      aria-hidden="true"
       {...props}
     />
   );
@@ -61,7 +62,7 @@ export const SkeletonTable: React.FC<{ rows?: number; cols?: number; className?:
   className = '',
 }) => {
   return (
-    <div className={`w-full border border-white/10 rounded-md overflow-hidden ${className}`}>
+    <div className={`w-full border border-white/10 rounded-lg overflow-hidden ${className}`}>
       <div className="bg-[#121215] p-3 flex gap-4 border-b border-white/10">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} height="16px" className="flex-1" />
@@ -79,3 +80,23 @@ export const SkeletonTable: React.FC<{ rows?: number; cols?: number; className?:
     </div>
   );
 };
+
+export const SkeletonDistribution: React.FC<{ items?: number; className?: string }> = ({
+  items = 4,
+  className = '',
+}) => {
+  return (
+    <div className={`space-y-3.5 ${className}`}>
+      {Array.from({ length: items }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <div className="flex justify-between items-center">
+            <Skeleton height="14px" width={`${40 + (i % 3) * 15}%`} />
+            <Skeleton height="14px" width="30px" />
+          </div>
+          <Skeleton height="6px" width="100%" rounded="rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+};
+

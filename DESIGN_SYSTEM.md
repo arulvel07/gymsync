@@ -121,20 +121,20 @@ Fixed predictable scale based on a 4px grid:
 
 ## 6. BORDER RADIUS SYSTEM
 
-* `--radius-sm`: `6px` (Inputs, buttons, badges)
-* `--radius-md`: `10px` (Cards, dropdowns, table containers)
-* `--radius-lg`: `14px` (Feature panels, entrance kiosk widgets)
-* `--radius-xl`: `20px` (Large dialog overlays)
-* `--radius-full`: `9999px` (Status dots, pill toggles)
+* `--radius-sm`: `8px` (Inputs, buttons, form controls)
+* `--radius-md`: `12px` (Cards, dropdowns, table containers)
+* `--radius-lg`: `16px` (Feature panels, modals, kiosk widgets)
+* `--radius-xl`: `20px` (Large status panels, kiosk hero frames, dialog overlays)
+* `--radius-full`: `9999px` (Badges, status indicators, pill toggles)
 
 ---
 
 ## 7. SHADOW SYSTEM
 
 * `--shadow-none`: `none`
-* `--shadow-sm`: `0 1px 2px rgba(0, 0, 0, 0.3)` (Buttons, subtle interactive elements)
-* `--shadow-md`: `0 4px 12px rgba(0, 0, 0, 0.4)` (Standard cards)
-* `--shadow-lg`: `0 10px 30px rgba(0, 0, 0, 0.6)` (Modals, floating toasts)
+* `--shadow-sm`: `0 1px 3px rgba(0, 0, 0, 0.35)` (Buttons, subtle interactive elements)
+* `--shadow-md`: `0 4px 16px rgba(0, 0, 0, 0.45)` (Standard cards, dropdowns)
+* `--shadow-lg`: `0 12px 36px rgba(0, 0, 0, 0.65)` (Modals, floating toasts, kiosk overlays)
 
 ---
 

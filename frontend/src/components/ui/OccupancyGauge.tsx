@@ -1,6 +1,7 @@
 import React from 'react';
 import { getOccupancyLevel } from '@/lib/utils';
 import { StatusBadge } from './StatusBadge';
+import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 
 export interface OccupancyGaugeProps {
   currentCount: number;
@@ -21,6 +22,9 @@ export const OccupancyGauge: React.FC<OccupancyGaugeProps> = ({
 }) => {
   const level = getOccupancyLevel(percentage);
   const safePercentage = Math.min(Math.max(percentage, 0), 100);
+
+  const animatedCount = useAnimatedNumber(currentCount, 350);
+  const animatedPercentage = useAnimatedNumber(safePercentage, 350);
 
   const radiusMap = {
     sm: 55,
@@ -57,10 +61,19 @@ export const OccupancyGauge: React.FC<OccupancyGaugeProps> = ({
     ? 'moderate'
     : 'open';
 
+  const accessibleDescription = `Gym occupancy: ${currentCount} of ${maxCapacity} people present, ${safePercentage}% capacity. Status: ${
+    !isOpen ? 'Gym Closed' : level.label
+  }.`;
+
   return (
     <div className="flex flex-col items-center">
+      <span className="sr-only">{accessibleDescription}</span>
       <div className={`relative ${containerSizeMap[size]} mx-auto mb-2`}>
-        <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="w-full h-full -rotate-90">
+        <svg
+          viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+          className="w-full h-full -rotate-90"
+          aria-hidden="true"
+        >
           <circle
             className="fill-none stroke-white/5"
             cx={center}
@@ -80,18 +93,18 @@ export const OccupancyGauge: React.FC<OccupancyGaugeProps> = ({
             style={{ stroke: gaugeColor }}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
           <div className="flex items-baseline gap-1">
             <span
-              className={`font-mono font-bold tabular-nums tracking-tight ${numberSizeMap[size]}`}
+              className={`font-mono font-bold tabular-nums tracking-tight transition-colors duration-250 ${numberSizeMap[size]}`}
               style={{ color: gaugeColor }}
             >
-              {currentCount}
+              {animatedCount}
             </span>
             <span className="text-xs text-[#71717a]">/ {maxCapacity}</span>
           </div>
           <span className="font-mono text-xs font-medium text-[#a1a1aa] mt-0.5">
-            {safePercentage}%
+            {animatedPercentage}%
           </span>
         </div>
       </div>

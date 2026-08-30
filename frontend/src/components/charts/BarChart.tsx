@@ -12,7 +12,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import type { PeakHour } from '@/types';
 import { formatHour, getOccupancyLevel } from '@/lib/utils';
-import { commonCartesianScales, commonTooltipOptions } from './chartConfig';
+import { commonCartesianScales, commonTooltipOptions, commonAnimationOptions } from './chartConfig';
 
 ChartJS.register(
   CategoryScale,
@@ -50,6 +50,7 @@ export const BarChart: React.FC<{ data: PeakHour[] }> = ({ data }) => {
   const options: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: commonAnimationOptions,
     plugins: {
       legend: { display: false },
       tooltip: commonTooltipOptions,
@@ -58,8 +59,29 @@ export const BarChart: React.FC<{ data: PeakHour[] }> = ({ data }) => {
   };
 
   return (
-    <div className="h-full w-full">
-      <Bar data={chartData} options={options} />
+    <div className="h-full w-full relative">
+      <div className="sr-only">
+        <table>
+          <caption>Hourly Gym Visitor Density</caption>
+          <thead>
+            <tr>
+              <th scope="col">Hour</th>
+              <th scope="col">Average Visitors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {gymHours.map((h) => (
+              <tr key={h.hour}>
+                <td>{formatHour(h.hour)}</td>
+                <td>{h.avg_visitors}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="h-full w-full" aria-hidden="true">
+        <Bar data={chartData} options={options} />
+      </div>
     </div>
   );
 };

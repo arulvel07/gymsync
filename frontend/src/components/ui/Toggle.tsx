@@ -19,7 +19,10 @@ export const Toggle: React.FC<ToggleProps> = ({
   id,
   className = '',
 }) => {
-  const toggleId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+  const generatedId = React.useId();
+  const toggleId = id || (label ? label.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `toggle-${generatedId}`);
+  const labelId = label ? `${toggleId}-label` : undefined;
+  const descId = description ? `${toggleId}-desc` : undefined;
 
   return (
     <div className={`flex items-center justify-between gap-4 select-none ${className}`}>
@@ -27,6 +30,7 @@ export const Toggle: React.FC<ToggleProps> = ({
         <div className="space-y-0.5">
           {label && (
             <label
+              id={labelId}
               htmlFor={toggleId}
               className={`text-sm font-medium cursor-pointer ${
                 disabled ? 'opacity-50 cursor-not-allowed' : 'text-[#fafafa]'
@@ -35,7 +39,11 @@ export const Toggle: React.FC<ToggleProps> = ({
               {label}
             </label>
           )}
-          {description && <p className="text-xs text-[#71717a]">{description}</p>}
+          {description && (
+            <p id={descId} className="text-xs text-[#71717a]">
+              {description}
+            </p>
+          )}
         </div>
       )}
       <button
@@ -43,9 +51,12 @@ export const Toggle: React.FC<ToggleProps> = ({
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-labelledby={labelId}
+        aria-describedby={descId}
+        aria-label={!label ? 'Toggle switch' : undefined}
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b] disabled:opacity-50 disabled:cursor-not-allowed ${
           checked ? 'bg-blue-600' : 'bg-[#1f1f24] hover:bg-[#282830]'
         }`}
       >
@@ -53,6 +64,7 @@ export const Toggle: React.FC<ToggleProps> = ({
           className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
             checked ? 'translate-x-5' : 'translate-x-0'
           }`}
+          aria-hidden="true"
         />
       </button>
     </div>

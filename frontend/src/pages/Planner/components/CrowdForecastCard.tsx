@@ -31,7 +31,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
   if (loading && !forecast) {
     return (
       <Card className="h-full flex flex-col justify-between">
-        <CardHeader className="pb-3 border-b border-[#27272a]">
+        <CardHeader className="pb-3 border-b border-white/10">
           <Skeleton height="16px" width="60%" />
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -46,15 +46,15 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
   if (error && !forecast) {
     return (
       <Card className="h-full flex flex-col justify-between">
-        <CardHeader className="pb-3 border-b border-[#27272a]">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+        <CardHeader className="pb-3 border-b border-white/10">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
             When Should You Train?
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <ErrorState
-            title="WE COULDN'T LOAD THE CROWD FORECAST"
+            title="Unable to load crowd forecast"
             message={error}
             onRetry={onRetry}
           />
@@ -66,8 +66,8 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
   if (!forecast && !loading) {
     return (
       <Card className="h-full flex flex-col justify-between">
-        <CardHeader className="pb-3 border-b border-[#27272a]">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+        <CardHeader className="pb-3 border-b border-white/10">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
             When Should You Train?
           </CardTitle>
@@ -75,7 +75,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
         <CardContent className="pt-4">
           <EmptyState
             icon={<AlertTriangle className="w-6 h-6 text-amber-400" />}
-            title="CROWD FORECAST UNAVAILABLE"
+            title="Crowd forecast unavailable"
             description="We don't have enough data for this time yet."
           />
         </CardContent>
@@ -98,11 +98,11 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
 
   return (
     <Card className="h-full flex flex-col justify-between">
-      <CardHeader className="pb-3 border-b border-[#27272a]">
+      <CardHeader className="pb-3 border-b border-white/10">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
             <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
-            WHEN SHOULD YOU TRAIN?
+            When Should You Train?
           </CardTitle>
           <span className="text-xs font-semibold text-blue-400 font-mono">
             {dateContextText}
@@ -112,10 +112,10 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
 
       <CardContent className="pt-4 space-y-4 flex-1 flex flex-col justify-between">
         {/* Main Forecast Decision Block */}
-        <div className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] space-y-3.5">
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
-              EXPECTED CROWD
+            <span className="text-[10px] uppercase tracking-wider text-[#71717a] font-semibold">
+              Expected crowd
             </span>
             <Badge
               variant={
@@ -126,7 +126,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
                   : 'red'
               }
             >
-              {level.label.toUpperCase()}
+              {level.label}
             </Badge>
           </div>
 
@@ -142,7 +142,7 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
           <div className="pt-1 flex items-baseline justify-between">
             <div className="text-xl font-bold text-white font-mono flex items-baseline gap-1.5">
               <span>{count} people expected</span>
-              <span className="text-xs font-normal text-zinc-500">
+              <span className="text-xs font-normal text-[#71717a]">
                 ({percent}% of {maxCap})
               </span>
             </div>
@@ -150,9 +150,9 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
 
           {/* Pre-planned Students */}
           {preplannedCount > 0 && (
-            <div className="pt-2 border-t border-zinc-800/80 text-xs text-zinc-400 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-zinc-400">
-                <Users className="w-3.5 h-3.5 text-zinc-500" />
+            <div className="pt-2 border-t border-white/5 text-xs text-[#a1a1aa] flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[#a1a1aa]">
+                <Users className="w-3.5 h-3.5 text-[#71717a]" />
                 Pre-planned workouts:
               </span>
               <span className="font-semibold text-white font-mono">
@@ -178,8 +178,8 @@ export const CrowdForecastCard: React.FC<CrowdForecastCardProps> = ({
         )}
 
         {/* Factual Grounded Attribution */}
-        <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-1 border-t border-zinc-800/50">
-          <Clock className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+        <div className="text-[11px] text-[#71717a] flex items-center gap-1.5 pt-1 border-t border-white/5">
+          <Clock className="w-3.5 h-3.5 text-[#71717a] shrink-0" />
           <span>Calculated from historical 30-day attendance and planned workouts.</span>
         </div>
       </CardContent>

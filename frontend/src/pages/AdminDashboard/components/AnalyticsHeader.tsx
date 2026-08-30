@@ -55,7 +55,7 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
                 key={range}
                 type="button"
                 onClick={() => onRangeChange(range)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                   isActive
                     ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40 shadow-sm'
                     : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.04] border border-transparent'

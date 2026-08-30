@@ -11,7 +11,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '', minimal = false 
       <footer
         className={`border-t border-white/10 py-4 px-6 text-xs text-[#71717a] text-center ${className}`}
       >
-        <p>IIITDM Kancheepuram — GymSync Smart Facility Management</p>
+        <p>IIITDM Kancheepuram — GymSync Campus Facility Management</p>
       </footer>
     );
   }

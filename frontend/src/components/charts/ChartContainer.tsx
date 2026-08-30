@@ -26,16 +26,20 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   className = '',
 }) => {
   return (
-    <Card className={className}>
+    <Card
+      role="region"
+      aria-label={title ? `${title} visualization region` : 'Data chart region'}
+      className={`flex flex-col ${className}`}
+    >
       {(title || description) && (
-        <CardHeader>
-          {title && <CardTitle>{title}</CardTitle>}
+        <CardHeader className="pb-2">
+          {title && <CardTitle className="text-base font-semibold">{title}</CardTitle>}
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent className={title || description ? 'pt-2' : ''}>
+      <CardContent className="flex-1 pb-4">
         {loading ? (
-          <div className={`${height} w-full flex flex-col justify-end gap-2 p-2`}>
+          <div className={`${height} w-full flex flex-col justify-end gap-2 p-2`} aria-hidden="true">
             <div className="flex items-end gap-3 h-full">
               <Skeleton className="flex-1 h-[40%]" />
               <Skeleton className="flex-1 h-[70%]" />
@@ -46,15 +50,16 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             <Skeleton height="14px" width="100%" />
           </div>
         ) : empty ? (
-          <div className={`${height} w-full flex items-center justify-center`}>
+          <div className={`w-full ${height} flex items-center justify-center`}>
             <EmptyState
-              icon={<BarChart3 className="w-6 h-6 text-[#71717a]" />}
+              icon={<BarChart3 className="w-6 h-6 text-[#71717a]" aria-hidden="true" />}
               title="No chart data"
               description={emptyMessage}
+              className="py-0"
             />
           </div>
         ) : (
-          <div className={`${height} w-full relative`}>{children}</div>
+          <div className={`w-full ${height} relative`}>{children}</div>
         )}
       </CardContent>
     </Card>

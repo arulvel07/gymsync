@@ -92,13 +92,13 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
   return (
     <>
       <Card>
-        <CardHeader className="pb-3 border-b border-[#27272a]">
+        <CardHeader className="pb-3 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1.5">
+            <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center gap-1.5">
               <Repeat className="w-3.5 h-3.5 text-blue-400" />
-              Weekly Routine Templates
+              Weekly Routine
             </CardTitle>
-            <span className="text-[11px] text-zinc-500 font-normal">Recurring schedule for every week</span>
+            <span className="text-[11px] text-[#71717a] font-normal">Recurring schedule for every week</span>
           </div>
         </CardHeader>
 
@@ -109,14 +109,14 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
               return (
                 <div
                   key={day.dayOfWeek}
-                  className="p-3 rounded-xl bg-[#18181b] border border-[#27272a] flex flex-col justify-between space-y-2"
+                  className="p-3 rounded-xl bg-white/[0.02] border border-white/10 flex flex-col justify-between space-y-2"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-zinc-300">{day.name}</span>
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(day.name, day.dayOfWeek)}
-                      className="p-1 text-zinc-500 hover:text-blue-400 rounded transition-colors cursor-pointer"
+                      className="p-1 text-[#71717a] hover:text-blue-400 rounded transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       title={`Edit ${day.name} routine`}
                     >
                       <Edit2 className="w-3 h-3" />
@@ -129,13 +129,13 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
                         <Dumbbell className="w-3 h-3 text-blue-400 shrink-0" />
                         <span className="truncate">{tpl.workout_type}</span>
                       </div>
-                      <div className="text-[10px] text-zinc-400 flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5 text-zinc-500 shrink-0" />
+                      <div className="text-[10px] text-[#a1a1aa] flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5 text-[#71717a] shrink-0" />
                         <span>{formatHour(tpl.planned_time_slot)}</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-[11px] text-zinc-500 py-1 italic">
+                    <div className="text-[11px] text-[#71717a] py-1 italic">
                       No routine set
                     </div>
                   )}
@@ -155,7 +155,7 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
         >
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+              <label className="block text-xs font-semibold text-[#a1a1aa] mb-2">
                 Workout Focus
               </label>
 
@@ -165,10 +165,10 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
                     key={type}
                     type="button"
                     onClick={() => setWorkoutType(type)}
-                    className={`px-3 py-2 rounded-lg border text-xs font-medium text-left cursor-pointer ${
+                    className={`px-3 py-2 rounded-lg border text-xs font-medium text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                       workoutType === type
                         ? 'bg-blue-600/20 border-blue-500 text-blue-400 font-semibold'
-                        : 'bg-[#18181b] border-[#27272a] text-zinc-300 hover:border-zinc-700'
+                        : 'bg-[#18181c] border-white/10 text-zinc-300 hover:border-white/20'
                     }`}
                   >
                     {type}
@@ -200,7 +200,7 @@ export const WeeklyTemplateList: React.FC<WeeklyTemplateListProps> = ({
               ))}
             </Select>
 
-            <div className="flex justify-between items-center pt-3 border-t border-[#27272a]">
+            <div className="flex justify-between items-center pt-3 border-t border-white/10">
               {templateMap.has(editingDay.dayOfWeek) ? (
                 <Button
                   variant="danger"

@@ -28,20 +28,20 @@ export const ForecastComparison: React.FC<ForecastComparisonProps> = ({
 
   return (
     <Card>
-      <CardHeader className="pb-3 border-b border-[#27272a]">
-        <CardTitle className="text-xs uppercase tracking-wider text-zinc-400 font-semibold flex items-center justify-between">
+      <CardHeader className="pb-3 border-b border-white/10">
+        <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight flex items-center justify-between">
           <span className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-blue-400" />
             Time Slot Crowd Comparison
           </span>
-          <span className="text-[11px] text-zinc-500 font-normal">
+          <span className="text-[11px] text-[#71717a] font-normal">
             Select a slot to view detailed forecast
           </span>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="pt-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5" role="group" aria-label="Time slot crowd comparison options">
           {items.map((item) => {
             const level = getOccupancyLevel(item.percentage);
             const isSelected = item.hour === selectedHour;
@@ -52,11 +52,12 @@ export const ForecastComparison: React.FC<ForecastComparisonProps> = ({
                 key={item.hour}
                 type="button"
                 aria-label={ariaLabel}
+                aria-pressed={isSelected}
                 onClick={() => onSelectHour(item.hour)}
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex flex-col justify-between space-y-2 ${
                   isSelected
                     ? 'bg-blue-600/20 border-blue-500 text-white shadow-sm'
-                    : 'bg-[#18181b] border-[#27272a] text-zinc-300 hover:border-zinc-700'
+                    : 'bg-[#18181c] border-white/10 text-zinc-300 hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between">

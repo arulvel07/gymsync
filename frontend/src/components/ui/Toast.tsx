@@ -51,10 +51,10 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const borderClasses: Record<ToastType, string> = {
-    success: 'border-emerald-500/30 text-[#fafafa] bg-[#121215]',
-    warning: 'border-amber-500/30 text-[#fafafa] bg-[#121215]',
-    error: 'border-red-500/30 text-[#fafafa] bg-[#121215]',
-    info: 'border-blue-500/30 text-[#fafafa] bg-[#121215]',
+    success: 'border-emerald-500/30 text-[#fafafa] bg-[#18181c]',
+    warning: 'border-amber-500/30 text-[#fafafa] bg-[#18181c]',
+    error: 'border-red-500/30 text-[#fafafa] bg-[#18181c]',
+    info: 'border-blue-500/30 text-[#fafafa] bg-[#18181c]',
   };
 
   return (
@@ -68,16 +68,18 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-md text-xs font-medium border shadow-xl max-w-sm transition-all duration-200 ${borderClasses[t.type]}`}
+            role={t.type === 'error' ? 'alert' : 'status'}
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-medium border shadow-2xl max-w-sm animate-toast-slide-in ${borderClasses[t.type]}`}
           >
             {icons[t.type]}
             <span className="flex-1 leading-snug">{t.message}</span>
             <button
+              type="button"
               onClick={() => removeToast(t.id)}
-              className="text-[#71717a] hover:text-white bg-transparent border-0 cursor-pointer p-0.5 rounded focus:outline-none"
+              className="text-[#71717a] hover:text-white bg-transparent border-0 cursor-pointer p-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors duration-150"
               aria-label="Dismiss notification"
             >
-              <X size={14} />
+              <X size={14} aria-hidden="true" />
             </button>
           </div>
         ))}

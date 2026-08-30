@@ -92,7 +92,7 @@ export const InsightCallout: React.FC<InsightCalloutProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xs uppercase tracking-wider text-[#a1a1aa] font-semibold">
+        <CardTitle className="text-sm font-semibold text-[#fafafa] tracking-tight">
           Operational Highlights
         </CardTitle>
         <p className="text-[0.72rem] text-[#71717a]">

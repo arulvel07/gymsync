@@ -57,7 +57,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   const sizeClass = sizeMap[size];
 
   return (
-    <span className={`relative inline-flex items-center justify-center ${className}`}>
+    <span className={`relative inline-flex items-center justify-center ${className}`} aria-hidden="true">
       {pulse && (
         <span
           className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${dotColor}`}

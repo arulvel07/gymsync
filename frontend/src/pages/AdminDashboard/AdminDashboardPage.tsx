@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { adminApi } from '@/services/api/admin';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Toggle } from '@/components/ui/Toggle';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/components/ui/Toast';
 import type { GymConfig } from '@/types';
@@ -77,7 +78,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   return (
     <div className="w-full">
-      {/* SECTION 1: OVERVIEW / COMMAND CENTER */}
+      {/* SECTION 1: GYM OVERVIEW */}
       {(section === 'overview' || currentPath === '/admin') && (
         <AdminOverview />
       )}
@@ -88,30 +89,30 @@ export const AdminDashboardPage: React.FC = () => {
       {/* SECTION 3: ANALYTICS */}
       {section === 'analytics' && <AdminAnalytics />}
 
-      {/* SECTION 4: FACILITY CONFIG */}
+      {/* SECTION 4: GYM SETTINGS */}
       {section === 'config' && (
         <div className="animate-fade-in-up">
           <div className="mb-6">
-            <div className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-1">System Parameters</div>
-            <h1 className="gradient-text text-2xl font-extrabold">Facility Configuration</h1>
-            <p className="text-xs text-[#a1a1aa]">Manage operational hours, max occupancy limits, and emergency facility open/close controls.</p>
+            <div className="text-xs uppercase tracking-widest text-blue-400 font-semibold mb-1">Gym Settings</div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#fafafa] tracking-tight">Gym Configuration</h1>
+            <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 leading-relaxed">Set operating hours, max capacity limits, and open or close the gym.</p>
           </div>
 
           <Card className="p-8 max-w-[520px]">
             <form onSubmit={handleConfigSubmit}>
               <div className="mb-5">
                 <Input
-                  label="Max Rated Capacity"
+                  label="Maximum Capacity"
                   type="number"
                   min={1}
                   max={500}
                   value={maxCapacity}
                   onChange={(e) => setMaxCapacity(parseInt(e.target.value) || 50)}
                 />
-                <p className="text-[0.72rem] text-[#71717a] mt-1">Maximum allowed headcount before triggering full capacity warnings.</p>
+                <p className="text-[0.72rem] text-[#71717a] mt-1">Maximum number of students allowed in the gym at one time.</p>
               </div>
 
-              <div className="text-xs font-bold text-[#71717a] uppercase mb-2">Shift 1 (Morning)</div>
+              <div className="text-xs font-bold text-[#71717a] uppercase mb-2">Morning Hours</div>
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <Input
                   label="Opening Time"
@@ -127,7 +128,7 @@ export const AdminDashboardPage: React.FC = () => {
                 />
               </div>
 
-              <div className="text-xs font-bold text-[#71717a] uppercase mb-2">Shift 2 (Evening)</div>
+              <div className="text-xs font-bold text-[#71717a] uppercase mb-2">Evening Hours</div>
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <Input
                   label="Opening Time"
@@ -143,28 +144,25 @@ export const AdminDashboardPage: React.FC = () => {
                 />
               </div>
 
-              <div className="p-4 mb-6 bg-white/[0.02] border border-white/10 rounded-lg flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-white">Facility Operational Status</div>
-                  <div className="text-[0.75rem] text-[#a1a1aa]">Toggle to immediately mark gym Open or Closed</div>
-                </div>
-                <input
-                  type="checkbox"
+              <div className="p-4 mb-6 bg-white/[0.02] border border-white/10 rounded-xl">
+                <Toggle
+                  id="facility-status-toggle"
+                  label="Gym Status"
+                  description="Set gym status to open or closed"
                   checked={isOpen}
-                  onChange={(e) => setIsOpen(e.target.checked)}
-                  className="w-5 h-5 accent-emerald-500 cursor-pointer"
+                  onChange={setIsOpen}
                 />
               </div>
 
               <Button type="submit" variant="primary" className="w-full py-3 text-sm font-semibold" loading={configSaving}>
-                Save Configuration Parameters
+                Save Settings
               </Button>
             </form>
           </Card>
         </div>
       )}
 
-      {/* SECTION 5: DYNAMIC QR CHECK-IN KIOSK */}
+      {/* SECTION 5: GYM ENTRANCE KIOSK */}
       {section === 'qr' && (
         <div className="animate-fade-in-up">
           <QREntranceKiosk />

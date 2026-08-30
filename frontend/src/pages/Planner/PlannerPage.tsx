@@ -221,8 +221,8 @@ export const PlannerPage: React.FC = () => {
     return (
       <div className="py-12">
         <ErrorState
-          title="We Couldn't Load Your Schedule"
-          message="Your workout plans are safe. We just couldn't connect to the server."
+          title="WE COULDN'T LOAD YOUR PLAN"
+          message="Your workout plans are safe. We just couldn't reach the gym server."
           onRetry={() => loadSchedule(true)}
         />
       </div>
@@ -274,6 +274,8 @@ export const PlannerPage: React.FC = () => {
             onTimeSlotChange={setSelectedTimeSlot}
             onSavePlan={handleSavePlan}
             onDeletePlan={handleDeletePlan}
+            forecast={forecast}
+            forecastLoading={forecastLoading}
             loading={scheduleLoading}
           />
         </div>
